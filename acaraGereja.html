@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JemaatID - Laporan Ibadah</title>
+    <title>JemaatID - Laporan Ibadah & Analitik</title>
     
     <!-- Tailwind CSS untuk Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,18 +17,20 @@
     <!-- SheetJS untuk Export/Import Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
-    <!-- SweetAlert2 untuk Notifikasi (Menggantikan alert/confirm) -->
+    <!-- jsPDF & AutoTable untuk Export PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- SweetAlert2 untuk Notifikasi -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        /* Animasi untuk modal */
         .modal-enter { animation: fadeIn 0.2s ease-out forwards; }
         .modal-leave { animation: fadeOut 0.2s ease-in forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
         
-        /* Custom scrollbar untuk tabel */
         .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -38,13 +40,23 @@
 
     <nav class="bg-blue-700 text-white shadow-lg z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fa-solid fa-church text-2xl mr-3"></i>
-                    <span class="font-bold text-xl tracking-tight">JemaatID <span class="font-light text-blue-200">| Laporan Ibadah</span></span>
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-church text-2xl"></i>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="nav-church-name" class="font-bold text-lg tracking-tight">Gereja JemaatID</span>
+                            <button onclick="editChurchName()" class="text-blue-200 hover:text-white text-xs bg-blue-800 px-2 py-0.5 rounded transition" title="Ubah Nama Gereja">
+                                <i class="fa-solid fa-pen"></i> Ubah
+                            </button>
+                        </div>
+                        <p class="text-xs text-blue-200 font-light">Sistem Manajemen & Analisis Ibadah</p>
+                    </div>
                 </div>
                 <div class="flex items-center">
-                    <span class="text-sm font-medium bg-blue-800 px-3 py-1 rounded-full"><i class="fa-solid fa-user mr-2"></i>Admin Area</span>
+                    <span class="text-sm font-medium bg-blue-800 px-4 py-1.5 rounded-full flex items-center shadow-inner">
+                        <i class="fa-solid fa-house mr-2"></i>Home
+                    </span>
                 </div>
             </div>
         </div>
@@ -52,21 +64,23 @@
 
     <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         
+        <!-- Dashboard Header & Filter -->
         <div class="mb-8">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-                <h1 class="text-2xl font-bold text-gray-900">Dashboard Ringkasan</h1>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Dashboard & Executive Summary</h1>
+                    <p class="text-sm text-gray-500">Analisis komprehensif kehadiran, keuangan, dan performa pelayan ibadah.</p>
+                </div>
                 <div class="flex items-center gap-2">
                     <label for="month-filter" class="text-sm font-medium text-gray-500">Periode:</label>
                     <select id="month-filter" onchange="renderDashboard()" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm cursor-pointer transition-all">
-                        <option value="all">Semua Waktu</option>
-                        <!-- Pilihan bulan akan diisi otomatis oleh JavaScript -->
+                        <option value="all">Semua Waktu (All Time)</option>
                     </select>
                 </div>
             </div>
             
+            <!-- Cards Ringkasan Utama -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                
-                <!-- Card: Total Acara -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center">
                     <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
                         <i class="fa-solid fa-calendar-check text-xl"></i>
@@ -77,7 +91,6 @@
                     </div>
                 </div>
 
-                <!-- Card: Total Kehadiran -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center">
                     <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
                         <i class="fa-solid fa-users text-xl"></i>
@@ -88,7 +101,6 @@
                     </div>
                 </div>
 
-                <!-- Card: Jemaat Baru -->
                 <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl shadow-sm border border-indigo-200 p-5 flex items-center">
                     <div class="p-3 rounded-full bg-indigo-600 text-white mr-4 shadow-md">
                         <i class="fa-solid fa-user-plus text-xl"></i>
@@ -99,55 +111,85 @@
                     </div>
                 </div>
 
-                <!-- Card: Total Penerimaan -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center">
                     <div class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
                         <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-medium">Total Penerimaan</p>
-                        <p class="text-lg font-bold text-gray-800" id="dash-total-income">Rp 0</p>
+                        <p class="text-lg font-bold text-emerald-600" id="dash-total-income">Rp 0</p>
                     </div>
                 </div>
 
-                <!-- Card: Total Pengeluaran -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center">
                     <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
                         <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500 font-medium">Total Pengeluaran</p>
-                        <p class="text-lg font-bold text-gray-800" id="dash-total-expense">Rp 0</p>
+                        <p class="text-sm text-gray-500 font-medium">Net Keuangan (Surplus)</p>
+                        <p class="text-lg font-bold text-blue-600" id="dash-net-finance">Rp 0</p>
                     </div>
                 </div>
+            </div>
+        </div>
 
+        <div class="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fa-solid fa-chart-line mr-2 text-indigo-600"></i> Analisis & Wawasan Senior (AI & Data Analyst)
+                    </h2>
+                    <p class="text-xs text-gray-500">Evaluasi mendalam tren jemaat, efektivitas pelayan, dan kesehatan finansial gereja.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="toggleSuggestion()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center cursor-pointer">
+                        <i class="fa-regular fa-lightbulb mr-2"></i> Rekomendasi Strategis
+                    </button>
+                    <button onclick="generatePDFReport()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center cursor-pointer">
+                        <i class="fa-solid fa-file-pdf mr-2"></i> Export Report PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid Analisis Senior -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4" id="analytics-container">
+                <!-- Diisi via JavaScript -->
+            </div>
+
+            <!-- Area Suggestion / Rekomendasi -->
+            <div id="suggestion-area" class="hidden mt-5 p-5 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl border border-indigo-100">
+                <h3 class="text-sm font-bold text-indigo-900 mb-3 flex items-center">
+                    <i class="fa-solid fa-brain mr-2 text-indigo-600"></i> Wawasan Strategis & Catatan Analis Senior
+                </h3>
+                <div id="suggestion-content" class="text-sm text-gray-700 space-y-2 leading-relaxed">
+                    <!-- Diisi via JavaScript -->
+                </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Toolbar -->
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 class="text-lg font-bold text-gray-800">Daftar Acara & Ibadah</h2>
-                
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Daftar Acara & Ibadah</h2>
+                    <p class="text-xs text-gray-500">Kelola kehadiran, keuangan, dan tim pelayanan setiap ibadah.</p>
+                </div>
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm">
+                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
                         <i class="fa-solid fa-plus mr-2"></i> Tambah Manual
                     </button>
-                    <button onclick="document.getElementById('file-upload').click()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm">
+                    <button onclick="document.getElementById('file-upload').click()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
                         <i class="fa-solid fa-file-import mr-2"></i> Import Excel
                     </button>
                     <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls" onchange="importFromExcel(event)">
-                    
-                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
                         <i class="fa-solid fa-file-export mr-2"></i> Export Excel
                     </button>
-                    <button onclick="clearAllData()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm">
+                    <button onclick="clearAllData()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
                         <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
                     </button>
                 </div>
             </div>
 
-            <!-- Table -->
             <div class="overflow-x-auto table-container">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
@@ -155,8 +197,8 @@
                             <th class="p-4 border-b font-semibold">Waktu & Tempat</th>
                             <th class="p-4 border-b font-semibold">Acara & Tema</th>
                             <th class="p-4 border-b font-semibold text-center">Jemaat (Total/Baru)</th>
-                            <th class="p-4 border-b font-semibold text-right">Keuangan (In/Out)</th>
-                            <th class="p-4 border-b font-semibold">Pelayanan</th>
+                            <th class="p-4 border-b font-semibold text-right">Keuangan (In/Out/Net)</th>
+                            <th class="p-4 border-b font-semibold">Pelayanan (Khotbah & WL)</th>
                             <th class="p-4 border-b font-semibold text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -164,8 +206,6 @@
                         <!-- Data will be populated here -->
                     </tbody>
                 </table>
-                
-                <!-- Empty State -->
                 <div id="empty-state" class="hidden flex-col items-center justify-center py-12 text-gray-400">
                     <i class="fa-solid fa-folder-open text-5xl mb-3 text-gray-300"></i>
                     <p class="text-lg font-medium text-gray-600">Belum ada data ibadah</p>
@@ -175,20 +215,15 @@
         </div>
     </main>
 
-    <!-- Modal Backdrop -->
     <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
-        <!-- Modal Content -->
         <div id="modal" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
-            
-            <!-- HEADER MODAL (Tetap di atas) -->
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
                 <h3 class="text-lg font-bold text-gray-800" id="modal-title">Tambah Laporan Baru</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
 
-            <!-- BODY MODAL (Bisa di-scroll) -->
             <div class="flex-1 p-6 overflow-y-auto min-h-0">
                 <form id="data-form" onsubmit="saveData(event)">
                     <input type="hidden" id="form-id">
@@ -262,13 +297,11 @@
                     <div class="mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <div class="flex justify-between items-center mb-3">
                             <label class="block text-sm font-medium text-gray-700">Daftar Pelayan Lainnya</label>
-                            <!-- Tombol diperbaiki: pakai id + addEventListener (lebih andal daripada onclick inline) -->
-                            <button type="button" id="btn-tambah-pelayan" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center shadow-sm relative z-10 cursor-pointer">
+                            <button type="button" id="btn-tambah-pelayan" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-plus mr-1 pointer-events-none"></i> Tambah Pelayan
                             </button>
                         </div>
-                        <div id="other-servers-container" class="space-y-2 relative z-0">
-                            <!-- Dynamic fields generated by JS will appear here -->
+                        <div id="other-servers-container" class="space-y-2">
                         </div>
                     </div>
 
@@ -277,10 +310,9 @@
                         <textarea id="form-notes" rows="2" placeholder="Informasi tambahan terkait ibadah..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"></textarea>
                     </div>
 
-                    <!-- Actions -->
                     <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                        <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition-colors">Batal</button>
-                        <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-sm">Simpan Data</button>
+                        <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition-colors cursor-pointer">Batal</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors shadow-sm cursor-pointer">Simpan Data</button>
                     </div>
                 </form>
             </div>
@@ -288,12 +320,14 @@
     </div>
 
     <script>
-        // State Management
         const STORAGE_KEY = 'jemaatid_events_data';
+        const CHURCH_NAME_KEY = 'jemaatid_church_name';
+        
         let eventsData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let churchName = localStorage.getItem(CHURCH_NAME_KEY) || 'Gereja JemaatID';
         let isFirstLoad = true;
+        let currentAnalyticsData = {};
 
-        // Formatting Helpers
         function formatCurrency(amount) {
             if(!amount) return 'Rp 0';
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -305,11 +339,33 @@
             return new Intl.DateTimeFormat('id-ID', options).format(new Date(dateString));
         }
 
+        function editChurchName() {
+            Swal.fire({
+                title: 'Ubah Nama Gereja',
+                input: 'text',
+                inputValue: churchName,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Nama gereja tidak boleh kosong!';
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    churchName = result.value.trim();
+                    localStorage.setItem(CHURCH_NAME_KEY, churchName);
+                    document.getElementById('nav-church-name').innerText = churchName;
+                    Swal.fire({ title: 'Berhasil', text: 'Nama gereja diperbarui.', icon: 'success', timer: 1200, showConfirmButton: false });
+                }
+            });
+        }
+
         function populateMonthFilter() {
             const select = document.getElementById('month-filter');
             const currentValue = select.value;
             
-            // Extract unique YYYY-MM dari data
             const months = new Set();
             eventsData.forEach(item => {
                 if(item.date) {
@@ -318,14 +374,13 @@
                 }
             });
             
-            // Selalu sediakan opsi bulan saat ini meskipun tidak ada data
             const now = new Date();
             const currentMonthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             months.add(currentMonthYear);
             
-            const sortedMonths = Array.from(months).sort().reverse(); // Urut dari yang terbaru
+            const sortedMonths = Array.from(months).sort().reverse(); 
             
-            select.innerHTML = '<option value="all">Semua Waktu</option>';
+            select.innerHTML = '<option value="all">Semua Waktu (All Time)</option>';
             
             sortedMonths.forEach(my => {
                 const [y, m] = my.split('-');
@@ -338,7 +393,6 @@
                 select.appendChild(option);
             });
             
-            // Set value yang sesuai (default ke bulan ini saat pertama load)
             if (isFirstLoad) {
                 select.value = currentMonthYear;
                 isFirstLoad = false;
@@ -348,7 +402,8 @@
         }
 
         function updateUI() {
-            // Urutkan data berdasarkan tanggal terbaru & jam
+            document.getElementById('nav-church-name').innerText = churchName;
+            
             eventsData.sort((a, b) => {
                 const dateA = new Date(`${a.date}T${a.time || '00:00'}`);
                 const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
@@ -359,15 +414,151 @@
             renderDashboard();
             renderTable();
             
-            // Save to local storage
             localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsData));
+        }
+
+        function calculateAdvancedAnalytics(filterValue) {
+            let result = {
+                filter: filterValue,
+                totalEvents: 0,
+                totalAttendance: 0,
+                totalNewVisitors: 0,
+                totalOldVisitors: 0,
+                totalIncome: 0,
+                totalExpense: 0,
+                netFinance: 0,
+                avgAttendance: 0,
+                avgIncomePerAttendee: 0,
+                momText: '-',
+                ytdTotal: 0,
+                topPreacher: '-',
+                topWL: '-',
+                preacherRanking: [],
+                wlRanking: [],
+                suggestionPoints: []
+            };
+
+            const allEvents = eventsData;
+            if (allEvents.length === 0) return result;
+
+            let filteredEvents = allEvents;
+            if (filterValue !== 'all') {
+                filteredEvents = allEvents.filter(d => d.date && d.date.startsWith(filterValue));
+            }
+
+            result.totalEvents = filteredEvents.length;
+            if (result.totalEvents === 0) return result;
+
+            result.totalAttendance = filteredEvents.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
+            result.totalNewVisitors = filteredEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
+            result.totalOldVisitors = Math.max(0, result.totalAttendance - result.totalNewVisitors);
+            result.totalIncome = filteredEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
+            result.totalExpense = filteredEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
+            result.netFinance = result.totalIncome - result.totalExpense;
+            result.avgAttendance = Math.round(result.totalAttendance / result.totalEvents);
+            result.avgIncomePerAttendee = result.totalAttendance > 0 ? Math.round(result.totalIncome / result.totalAttendance) : 0;
+
+            // Analisa Preacher (Pengkhotbah)
+            const preacherMap = {};
+            filteredEvents.forEach(item => {
+                const p = (item.preacher || 'Tidak Tercatat').trim();
+                if (!preacherMap[p]) preacherMap[p] = { count: 0, totalAtt: 0 };
+                preacherMap[p].count += 1;
+                preacherMap[p].totalAtt += (parseInt(item.attendance) || 0);
+            });
+
+            const preacherList = Object.keys(preacherMap).map(name => ({
+                name,
+                count: preacherMap[name].count,
+                avgAtt: Math.round(preacherMap[name].totalAtt / preacherMap[name].count)
+            })).sort((a, b) => b.avgAtt - a.avgAtt); // Urutkan berdasarkan rata-rata kehadiran tertinggi (paling penuh)
+
+            result.preacherRanking = preacherList;
+            if (preacherList.length > 0) {
+                result.topPreacher = `${preacherList[0].name} (Rata-rata ${preacherList[0].avgAtt} jiwa/ibadah)`;
+            }
+
+            // Analisa Worship Leader (WL)
+            const wlMap = {};
+            filteredEvents.forEach(item => {
+                const wl = (item.wl || 'Tidak Tercatat').trim();
+                if (!wlMap[wl]) wlMap[wl] = { count: 0, totalAtt: 0 };
+                wlMap[wl].count += 1;
+                wlMap[wl].totalAtt += (parseInt(item.attendance) || 0);
+            });
+
+            const wlList = Object.keys(wlMap).map(name => ({
+                name,
+                count: wlMap[name].count,
+                avgAtt: Math.round(wlMap[name].totalAtt / wlMap[name].count)
+            })).sort((a, b) => b.avgAtt - a.avgAtt);
+
+            result.wlRanking = wlList;
+            if (wlList.length > 0) {
+                result.topWL = `${wlList[0].name} (Rata-rata ${wlList[0].avgAtt} jiwa/ibadah)`;
+            }
+
+            // MoM / YTD Calculation
+            if (filterValue !== 'all') {
+                const [y, m] = filterValue.split('-').map(Number);
+                let prevM = m - 1; let prevY = y;
+                if (prevM === 0) { prevM = 12; prevY = y - 1; }
+                const prevMonthStr = `${prevY}-${String(prevM).padStart(2, '0')}`;
+
+                const prevData = allEvents.filter(d => d.date && d.date.startsWith(prevMonthStr));
+                const prevAtt = prevData.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
+
+                if (prevAtt > 0) {
+                    const momPercent = ((result.totalAttendance - prevAtt) / prevAtt) * 100;
+                    if (momPercent > 0) {
+                        result.momText = `<span class="text-green-600 font-bold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +${momPercent.toFixed(1)}%</span> vs bulan lalu`;
+                        result.suggestionPoints.push(`Pertumbuhan jemaat MoM positif (+${momPercent.toFixed(1)}%). Pertahankan strategi pelayanan dan tema khotbah saat ini.`);
+                    } else {
+                        result.momText = `<span class="text-red-500 font-bold"><i class="fa-solid fa-arrow-trend-down mr-1"></i> ${momPercent.toFixed(1)}%</span> vs bulan lalu`;
+                        result.suggestionPoints.push(`Kehadiran mengalami koreksi ${momPercent.toFixed(1)}% dibanding bulan lalu. Direkomendasikan evaluasi kegiatan atau peningkatan follow-up jemaat.`);
+                    }
+                } else {
+                    result.momText = `<span class="text-indigo-600 font-bold">Data awal</span>`;
+                }
+
+                const ytdData = allEvents.filter(d => d.date && d.date.startsWith(y.toString()) && d.date <= filterValue + '-31');
+                result.ytdTotal = ytdData.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
+            } else {
+                const uniqueMonths = new Set(allEvents.map(d => d.date ? d.date.substring(0,7) : '')).size;
+                const avgPerMonth = uniqueMonths > 0 ? Math.round(result.totalAttendance / uniqueMonths) : result.totalAttendance;
+                result.momText = `<span class="text-indigo-600 font-bold">${avgPerMonth} jiwa</span> rata-rata/bulan`;
+                result.ytdTotal = result.totalAttendance;
+            }
+
+            // Analisis Finansial (Senior Analyst Insight)
+            if (result.netFinance > 0) {
+                result.suggestionPoints.push(`Kesehatan Keuangan: Surplus sebesar ${formatCurrency(result.netFinance)}. Rasio penerimaan per jiwa adalah ${formatCurrency(result.avgIncomePerAttendee)}. Keuangan dalam kondisi sangat sehat.`);
+            } else if (result.netFinance < 0) {
+                result.suggestionPoints.push(`Kesehatan Keuangan: Defisit sebesar ${formatCurrency(Math.abs(result.netFinance))}. Perlu peninjauan ulang terhadap alokasi pengeluaran operasional ibadah.`);
+            } else {
+                result.suggestionPoints.push(`Kesehatan Keuangan: Seimbang (Break-even). Penerimaan menutupi total pengeluaran secara akurat.`);
+            }
+
+            // Analisis Pelayan (Preacher & WL Insight)
+            if (preacherList.length > 0) {
+                result.suggestionPoints.push(`Khotbah Favorit: Pengkhotbah '${preacherList[0].name}' mencatatkan rata-rata jemaat tertinggi (${preacherList[0].avgAtt} jiwa). Pola khotbah atau topiknya sangat diminati jemaat.`);
+            }
+            if (wlList.length > 0) {
+                result.suggestionPoints.push(`Worship Leader Efektif: Tim pujian di bawah WL '${wlList[0].name}' hadir pada ibadah dengan tingkat kehadiran optimal (${wlList[0].avgAtt} jiwa).`);
+            }
+
+            if (result.totalNewVisitors > 0) {
+                const visitorRatio = ((result.totalNewVisitors / result.totalAttendance) * 100).toFixed(1);
+                result.suggestionPoints.push(`Konversi Jiwa Baru: Terdapat ${result.totalNewVisitors} jemaat baru (${visitorRatio}% dari total kehadiran). Pastikan tim Hospitality mengamankan kontak mereka.`);
+            }
+
+            return result;
         }
 
         function renderDashboard() {
             const filterValue = document.getElementById('month-filter').value;
             let filteredEvents = eventsData;
             
-            // Filter berdasarkan bulan jika bukan 'all'
             if (filterValue !== 'all') {
                 filteredEvents = eventsData.filter(item => {
                     if(!item.date) return false;
@@ -382,13 +573,171 @@
             const totalNewVisitors = filteredEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
             const totalIncome = filteredEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
             const totalExpense = filteredEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
+            const netFinance = totalIncome - totalExpense;
 
-            // Update DOM dengan animasi ringan
             document.getElementById('dash-total-events').innerText = totalEvents;
             document.getElementById('dash-total-attendance').innerText = totalAttendance.toLocaleString('id-ID');
             document.getElementById('dash-total-new-visitors').innerText = totalNewVisitors.toLocaleString('id-ID');
             document.getElementById('dash-total-income').innerText = formatCurrency(totalIncome);
-            document.getElementById('dash-total-expense').innerText = formatCurrency(totalExpense);
+            
+            const netEl = document.getElementById('dash-net-finance');
+            netEl.innerText = formatCurrency(netFinance);
+            if (netFinance >= 0) {
+                netEl.className = 'text-lg font-bold text-emerald-600';
+            } else {
+                netEl.className = 'text-lg font-bold text-red-600';
+            }
+
+            // Render Advanced Analytics
+            currentAnalyticsData = calculateAdvancedAnalytics(filterValue);
+            const analyticsContainer = document.getElementById('analytics-container');
+            const suggestionContent = document.getElementById('suggestion-content');
+            
+            analyticsContainer.innerHTML = `
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Tren Kehadiran</p>
+                    <p class="text-base font-bold text-gray-800">${currentAnalyticsData.momText || '-'}</p>
+                    <p class="text-xs text-gray-400 mt-1">Rata-rata: ${currentAnalyticsData.avgAttendance || 0} jiwa/ibadah</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Kesehatan Finansial</p>
+                    <p class="text-base font-bold ${currentAnalyticsData.netFinance >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(currentAnalyticsData.netFinance)}</p>
+                    <p class="text-xs text-gray-400 mt-1">Penerimaan/Jiwa: ${formatCurrency(currentAnalyticsData.avgIncomePerAttendee)}</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Pengkhotbah Terfavorit</p>
+                    <p class="text-sm font-bold text-blue-700 truncate" title="${currentAnalyticsData.topPreacher}"><i class="fa-solid fa-microphone mr-1"></i> ${currentAnalyticsData.topPreacher}</p>
+                    <p class="text-xs text-gray-400 mt-1">Berdasarkan rata-rata jemaat</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Worship Leader Optimal</p>
+                    <p class="text-sm font-bold text-amber-600 truncate" title="${currentAnalyticsData.topWL}"><i class="fa-solid fa-music mr-1"></i> ${currentAnalyticsData.topWL}</p>
+                    <p class="text-xs text-gray-400 mt-1">Berdasarkan partisipasi ibadah</p>
+                </div>
+            `;
+
+            if (currentAnalyticsData.suggestionPoints && currentAnalyticsData.suggestionPoints.length > 0) {
+                suggestionContent.innerHTML = `<ul class="list-disc pl-5 space-y-1.5">` + 
+                    currentAnalyticsData.suggestionPoints.map(p => `<li>${p}</li>`).join('') + 
+                    `</ul>`;
+            } else {
+                suggestionContent.innerHTML = `<p class="text-gray-500">Belum cukup data untuk analisis lanjutan. Silakan tambahkan data ibadah.</p>`;
+            }
+        }
+
+        function toggleSuggestion() {
+            const area = document.getElementById('suggestion-area');
+            if (area.classList.contains('hidden')) {
+                area.classList.remove('hidden');
+                area.classList.add('modal-enter');
+            } else {
+                area.classList.add('hidden');
+                area.classList.remove('modal-enter');
+            }
+        }
+
+        function generatePDFReport() {
+            const filterValue = document.getElementById('month-filter').value;
+            const filterText = document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text;
+            
+            let filteredEvents = eventsData;
+            if (filterValue !== 'all') {
+                filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
+            }
+
+            if (filteredEvents.length === 0) {
+                Swal.fire('Info', 'Tidak ada data pada periode ini untuk dicetak.', 'info');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header Dokumen
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(30, 58, 138);
+            doc.text(`LAPORAN RESMI IBADAH & ANALISIS KEUANGAN`, 14, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`${churchName}`, 14, 27);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Periode Laporan: ${filterText}`, 14, 34);
+            doc.text(`Tanggal Cetak: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeStyle: 'short' }).format(new Date())}`, 14, 40);
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 44, 196, 44);
+
+            // Ringkasan Eksekutif (Kehadiran & Keuangan)
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 0, 0);
+            doc.text("1. Ringkasan Eksekutif", 14, 53);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text(`• Total Kehadiran Jemaat : ${currentAnalyticsData.totalAttendance.toLocaleString('id-ID')} jiwa (Lama: ${currentAnalyticsData.totalOldVisitors}, Baru: ${currentAnalyticsData.totalNewVisitors})`, 14, 61);
+            doc.text(`• Total Penerimaan (In)   : ${formatCurrency(currentAnalyticsData.totalIncome)}`, 14, 68);
+            doc.text(`• Total Pengeluaran (Out) : ${formatCurrency(currentAnalyticsData.totalExpense)}`, 14, 75);
+            doc.text(`• Net Keuangan (Surplus)  : ${formatCurrency(currentAnalyticsData.netFinance)}`, 14, 82);
+            doc.text(`• Pengkhotbah Utama      : ${currentAnalyticsData.topPreacher}`, 14, 89);
+            doc.text(`• Worship Leader Utama   : ${currentAnalyticsData.topWL}`, 14, 96);
+
+            // Analisis & Rekomendasi Senior
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("2. Wawasan Analis & Rekomendasi Strategis", 14, 108);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            let yPos = 115;
+            currentAnalyticsData.suggestionPoints.forEach(point => {
+                const lines = doc.splitTextToSize(`• ${point}`, 180);
+                doc.text(lines, 14, yPos);
+                yPos += (lines.length * 5) + 3;
+            });
+
+            yPos += 5;
+
+            // Tabel Rincian Data
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("3. Rincian Data Ibadah", 14, yPos);
+            yPos += 7;
+
+            const tableColumn = ["Tanggal", "Acara", "Kehadiran", "Penerimaan", "Pengeluaran", "Pengkhotbah", "WL"];
+            const tableRows = [];
+
+            filteredEvents.forEach(item => {
+                tableRows.push([
+                    item.date,
+                    item.eventName,
+                    `${item.attendance || 0} (${item.newVisitors || 0} baru)`,
+                    formatCurrency(item.income),
+                    formatCurrency(item.expense),
+                    item.preacher || "-",
+                    item.wl || "-"
+                ]);
+            });
+
+            doc.autoTable({
+                startY: yPos,
+                head: [tableColumn],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 58, 138] },
+                styles: { fontSize: 8 },
+                columnStyles: {
+                    2: { halign: 'center' },
+                    3: { halign: 'right' },
+                    4: { halign: 'right' }
+                }
+            });
+
+            doc.save(`Laporan_Ibadah_${churchName.replace(/\s+/g, '_')}_${filterValue}.pdf`);
         }
 
         function renderTable() {
@@ -396,17 +745,26 @@
             const emptyState = document.getElementById('empty-state');
             
             tbody.innerHTML = '';
+            
+            const filterValue = document.getElementById('month-filter').value;
+            let filteredEvents = eventsData;
+            if (filterValue !== 'all') {
+                filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
+            }
 
-            if (eventsData.length === 0) {
+            if (filteredEvents.length === 0) {
                 emptyState.style.display = 'flex';
                 return;
             } else {
                 emptyState.style.display = 'none';
             }
 
-            eventsData.forEach(item => {
+            filteredEvents.forEach(item => {
                 const totalJemaat = parseInt(item.attendance) || 0;
                 const jemaatBaru = parseInt(item.newVisitors) || 0;
+                const income = parseInt(item.income) || 0;
+                const expense = parseInt(item.expense) || 0;
+                const net = income - expense;
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-blue-50/50 transition-colors group';
@@ -427,23 +785,24 @@
                         ${jemaatBaru > 0 ? `<div class="text-xs font-semibold text-emerald-600">${jemaatBaru.toLocaleString('id-ID')} Baru</div>` : ''}
                     </td>
                     <td class="p-4 align-top text-right">
-                        <div class="text-sm font-medium text-emerald-600 mb-1" title="Penerimaan">+ ${formatCurrency(item.income)}</div>
-                        <div class="text-sm font-medium text-red-600" title="Pengeluaran">- ${formatCurrency(item.expense)}</div>
+                        <div class="text-xs font-medium text-emerald-600">+ ${formatCurrency(income)}</div>
+                        <div class="text-xs font-medium text-red-600">- ${formatCurrency(expense)}</div>
+                        <div class="text-xs font-bold ${net >= 0 ? 'text-blue-600' : 'text-red-600'} mt-1">= ${formatCurrency(net)}</div>
                     </td>
                     <td class="p-4 align-top">
                         <div class="text-sm space-y-1">
-                            ${item.preacher ? `<div class="text-gray-800 font-medium"><i class="fa-solid fa-microphone text-blue-500 mr-1 w-4"></i> ${item.preacher}</div>` : ''}
-                            ${item.wl ? `<div class="text-gray-600 text-xs"><i class="fa-solid fa-music text-amber-500 mr-1 w-4"></i> ${item.wl}</div>` : ''}
-                            ${item.musicians ? `<div class="text-gray-500 text-xs"><i class="fa-solid fa-guitar text-gray-400 mr-1 w-4"></i> ${item.musicians}</div>` : ''}
-                            ${item.otherServers ? `<div class="text-gray-400 text-xs"><i class="fa-solid fa-users text-gray-300 mr-1 w-4"></i> ${item.otherServers}</div>` : ''}
+                            ${item.preacher ? `<div class="text-gray-800 font-medium"><i class="fa-solid fa-microphone text-blue-500 mr-1 w-4"></i> ${item.preacher}</div>` : '<div class="text-gray-400 italic text-xs">Tanpa Khotbah</div>'}
+                            ${item.wl ? `<div class="text-gray-600 text-xs"><i class="fa-solid fa-music text-amber-500 mr-1 w-4"></i> WL: ${item.wl}</div>` : ''}
+                            ${item.musicians ? `<div class="text-gray-500 text-xs"><i class="fa-solid fa-guitar text-gray-400 mr-1 w-4"></i> Musik: ${item.musicians}</div>` : ''}
+                            ${item.otherServers ? `<div class="text-gray-400 text-xs"><i class="fa-solid fa-users text-gray-300 mr-1 w-4"></i> Lainnya: ${item.otherServers}</div>` : ''}
                         </div>
                     </td>
                     <td class="p-4 align-top text-center">
                         <div class="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                            <button type="button" onclick="editData('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded transition-colors" title="Edit">
+                            <button type="button" onclick="editData('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded transition-colors cursor-pointer" title="Edit">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button type="button" onclick="confirmDelete('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition-colors" title="Hapus">
+                            <button type="button" onclick="confirmDelete('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition-colors cursor-pointer" title="Hapus">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -454,10 +813,8 @@
         }
 
         function addOtherServerField(role = '', name = '') {
-            // Proteksi pencegahan Event object jika tidak sengaja dipassing oleh HTML inline onclick
             const roleStr = typeof role === 'string' ? role : '';
             const nameStr = typeof name === 'string' ? name : '';
-
             const container = document.getElementById('other-servers-container');
             if (!container) return;
             
@@ -466,28 +823,23 @@
             row.innerHTML = `
                 <input type="text" placeholder="Tugas (Mis: Usher)" value="${roleStr}" class="w-2/5 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm server-role transition-all">
                 <input type="text" placeholder="Nama Pelayan" value="${nameStr}" class="w-3/5 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm server-name transition-all">
-                <button type="button" onclick="this.closest('.other-server-row').remove()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg px-3 py-2 transition-colors flex-shrink-0" title="Hapus">
+                <button type="button" onclick="this.closest('.other-server-row').remove()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg px-3 py-2 transition-colors flex-shrink-0 cursor-pointer" title="Hapus">
                     <i class="fa-solid fa-trash-can pointer-events-none"></i>
                 </button>
             `;
             container.appendChild(row);
         }
 
-        // Fungsi baru khusus untuk handler klik tombol
-        function handleAddServerClick(e) {
-            if(e) e.preventDefault(); // Cegah fungsi default browser
-            addOtherServerField('', ''); // Panggil form kosong dengan aman
-        }
-
-        // Pasang event listener secara langsung ke tombol (lebih andal daripada onclick inline di HTML,
-        // karena tidak bergantung pada global scope / atribut event yang kadang tidak konsisten antar browser)
-        document.getElementById('btn-tambah-pelayan').addEventListener('click', handleAddServerClick);
+        document.getElementById('btn-tambah-pelayan').addEventListener('click', function(e) {
+            if(e) e.preventDefault();
+            addOtherServerField('', '');
+        });
 
         function openModal() {
             document.getElementById('data-form').reset();
             document.getElementById('form-id').value = '';
             document.getElementById('modal-title').innerText = 'Tambah Laporan Baru';
-            document.getElementById('other-servers-container').innerHTML = ''; // Kosongkan daftar dinamis
+            document.getElementById('other-servers-container').innerHTML = ''; 
             
             const backdrop = document.getElementById('modal-backdrop');
             const modal = document.getElementById('modal');
@@ -514,7 +866,6 @@
         function saveData(e) {
             e.preventDefault();
             
-            // Menggabungkan data dari field dinamis Pelayan Lainnya
             const serverRows = document.querySelectorAll('.other-server-row');
             let otherServersArray = [];
             serverRows.forEach(row => {
@@ -579,7 +930,6 @@
             document.getElementById('form-musicians').value = data.musicians || '';
             document.getElementById('form-notes').value = data.notes || '';
 
-            // Render ulang form dinamis Pelayan Lainnya
             document.getElementById('other-servers-container').innerHTML = '';
             if (data.otherServers) {
                 const servers = data.otherServers.split(', ');
@@ -589,7 +939,7 @@
                     if (server.includes(': ')) {
                         const parts = server.split(': ');
                         role = parts[0];
-                        name = parts.slice(1).join(': '); // Antisipasi jika ada titik dua pada nama
+                        name = parts.slice(1).join(': ');
                     }
                     addOtherServerField(role, name);
                 });
@@ -676,18 +1026,15 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Ibadah");
 
-            // Lebar kolom rapi
             const wscols = [
                 {wch: 15}, {wch: 12}, {wch: 8}, {wch: 25}, {wch: 20}, {wch: 25}, 
                 {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}, 
                 {wch: 25}, {wch: 30}, {wch: 40}
             ];
             worksheet['!cols'] = wscols;
-
-            XLSX.writeFile(workbook, "JemaatID_Laporan_Ibadah_Lengkap.xlsx");
+            XLSX.writeFile(workbook, `${churchName.replace(/\s+/g, '_')}_Laporan_Ibadah.xlsx`);
         }
 
-        // Konversi nilai sel Excel (Date object, angka serial, atau teks) menjadi string "YYYY-MM-DD"
         function excelValueToYMD(val) {
             if (val === undefined || val === null || val === '') return '';
             if (val instanceof Date) {
@@ -697,7 +1044,6 @@
                 return `${y}-${m}-${d}`;
             }
             if (typeof val === 'number') {
-                // Fallback jika masih berupa serial number Excel
                 const date = new Date(Math.round((val - 25569) * 86400 * 1000));
                 const y = date.getUTCFullYear();
                 const m = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -716,7 +1062,6 @@
             return str;
         }
 
-        // Konversi nilai sel Excel (Date/Time object, pecahan angka, atau teks) menjadi string "HH:MM"
         function excelValueToHHMM(val) {
             if (val === undefined || val === null || val === '') return '';
             if (val instanceof Date) {
@@ -725,7 +1070,6 @@
                 return `${h}:${m}`;
             }
             if (typeof val === 'number') {
-                // Fallback: pecahan hari (mis. 0.5 = 12:00)
                 const totalMinutes = Math.round(val * 24 * 60);
                 const h = String(Math.floor(totalMinutes / 60) % 24).padStart(2, '0');
                 const m = String(totalMinutes % 60).padStart(2, '0');
@@ -768,9 +1112,9 @@
                                 id: existingId ? existingId.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 9),
                                 eventName: row['Nama Acara'],
                                 location: row['Lokasi'] || '',
-                                date: excelValueToYMD(row['Tanggal (YYYY-MM-DD)']),
+                                date: excelValueYMD = excelValueToYMD(row['Tanggal (YYYY-MM-DD)']),
                                 time: excelValueToHHMM(row['Waktu']),
-                                attendance: row['Total Kehadiran'] || row['Kehadiran'] || 0, // Fallback to old format if used
+                                attendance: row['Total Kehadiran'] || row['Kehadiran'] || 0,
                                 newVisitors: row['Jemaat Baru'] || 0,
                                 income: row['Penerimaan (Rp)'] || 0,
                                 expense: row['Pengeluaran (Rp)'] || 0,
@@ -778,7 +1122,7 @@
                                 sermonTheme: row['Tema Khotbah'] || '',
                                 wl: row['Worship Leader'] || '',
                                 musicians: row['Pemusik'] || '',
-                                otherServers: row['Pelayan Lainnya'] || row['Pelayan Ibadah'] || '', // Fallback to old format
+                                otherServers: row['Pelayan Lainnya'] || row['Pelayan Ibadah'] || '',
                                 notes: row['Catatan'] || ''
                             };
 
@@ -798,15 +1142,14 @@
                     
                 } catch (error) {
                     console.error(error);
-                    Swal.fire('Gagal Import', 'Pastikan file Excel formatnya sesuai dengan Export terbaru.', 'error');
+                    Swal.fire('Gagal Import', 'Pastikan format file Excel sesuai.', 'error');
                 }
-                event.target.value = '';
+                event.target.value = {};
             };
             
             reader.readAsArrayBuffer(file);
         }
 
-        // Initialize UI on load
         window.onload = () => {
             updateUI();
         };
