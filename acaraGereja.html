@@ -38,7 +38,7 @@
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col">
 
-    <nav class="bg-blue-700 text-white shadow-lg z-10">
+    <nav class="bg-blue-700 text-white shadow-lg z-10 flex-shrink-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center space-x-3">
@@ -167,7 +167,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-bold text-gray-800">Daftar Acara & Ibadah</h2>
@@ -178,11 +178,11 @@
                         <i class="fa-solid fa-plus mr-2"></i> Tambah Manual
                     </button>
                     <button onclick="document.getElementById('file-upload').click()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-file-import mr-2"></i> Import Excel
+                        <i class="fa-solid fa-file-import mr-2"></i> Import (Semua)
                     </button>
                     <input type="file" id="file-upload" class="hidden" accept=".xlsx, .xls" onchange="importFromExcel(event)">
                     <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-file-export mr-2"></i> Export Excel
+                        <i class="fa-solid fa-file-export mr-2"></i> Export (Semua)
                     </button>
                     <button onclick="clearAllData()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
                         <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
@@ -213,6 +213,53 @@
                 </div>
             </div>
         </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-clipboard-list text-purple-600 mr-2"></i>Daftar Kegiatan Gereja</h2>
+                    <p class="text-xs text-gray-500">Kelola pastoral: Penyerahan Anak, Baptisan, Pernikahan, Kematian, dll.</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openActivityModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-plus mr-2"></i> Tambah Kegiatan
+                    </button>
+                    <button onclick="document.getElementById('file-upload').click()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-file-import mr-2"></i> Import (Semua)
+                    </button>
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-file-export mr-2"></i> Export (Semua)
+                    </button>
+                    <button onclick="clearAllActivities()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto table-container">
+                <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                            <th class="p-4 border-b font-semibold">Waktu</th>
+                            <th class="p-4 border-b font-semibold">Jenis & Detail Kegiatan</th>
+                            <th class="p-4 border-b font-semibold">Nama Terkait</th>
+                            <th class="p-4 border-b font-semibold">Pelayan / Petugas</th>
+                            <th class="p-4 border-b font-semibold text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activities-table-body" class="text-sm divide-y divide-gray-100">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+                <div id="activity-empty-state" class="hidden flex-col items-center justify-center py-12 text-gray-400">
+                    <i class="fa-solid fa-folder-open text-5xl mb-3 text-gray-300"></i>
+                    <p class="text-lg font-medium text-gray-600">Belum ada data kegiatan</p>
+                    <p class="text-sm text-gray-400 mt-1">Silakan tambah kegiatan pastoral di sini.</p>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
@@ -319,11 +366,100 @@
         </div>
     </div>
 
+    <div id="activity-modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+        <div id="activity-modal" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-purple-50 flex-shrink-0">
+                <h3 class="text-lg font-bold text-gray-800" id="activity-modal-title">Tambah Kegiatan Baru</h3>
+                <button onclick="closeActivityModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 p-6 overflow-y-auto min-h-0">
+                <form id="activity-form" onsubmit="saveActivityData(event)">
+                    <input type="hidden" id="act-form-id">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Kegiatan (LoV) *</label>
+                            <select id="act-form-type" required onchange="toggleActivityFields()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all bg-white cursor-pointer font-medium">
+                                <option value="" disabled selected>-- Pilih Jenis --</option>
+                                <option value="Penyerahan Anak">Penyerahan Anak</option>
+                                <option value="Baptisan">Baptisan</option>
+                                <option value="Pemberkatan Nikah">Pemberkatan Nikah</option>
+                                <option value="Pemberkatan Rumah">Pemberkatan Rumah</option>
+                                <option value="Kematian / Penghiburan">Kematian / Penghiburan</option>
+                                <option value="Konseling">Konseling</option>
+                                <option value="Kunjungan Jemaat">Kunjungan Jemaat</option>
+                                <option value="Lainnya">Lainnya...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Terkait *</label>
+                            <input type="text" id="act-form-name" required placeholder="Mis: Keluarga Budi / Bayi x" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal *</label>
+                            <input type="date" id="act-form-date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Waktu</label>
+                            <input type="time" id="act-form-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Fields based on Selection -->
+                    <div class="space-y-4 mb-4 p-4 bg-purple-50 rounded-xl border border-purple-100 hidden" id="dynamic-fields-wrapper">
+                        
+                        <!-- Field Lokasi (disembunyikan untuk kegiatan yang umumnya di gereja) -->
+                        <div id="field-location" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi / Alamat</label>
+                            <input type="text" id="act-form-location" placeholder="Alamat rumah, RS, dll" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+
+                        <!-- Field Asal Agama (Khusus Baptisan) -->
+                        <div id="field-religion" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Asal Agama Sebelumnya</label>
+                            <input type="text" id="act-form-religion" placeholder="Opsional, jika pindah agama" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+                        
+                        <!-- Field Tanggal Meninggal (Khusus Kematian) -->
+                        <div id="field-death-date" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Meninggal</label>
+                            <input type="date" id="act-form-death-date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pelayan / Petugas / Hamba Tuhan</label>
+                        <input type="text" id="act-form-server" placeholder="Nama Pendeta / Majelis" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan</label>
+                        <textarea id="act-form-notes" rows="2" placeholder="Informasi detail kegiatan..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all resize-none"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="closeActivityModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition-colors">Batal</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors shadow-sm">Simpan Kegiatan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         const STORAGE_KEY = 'jemaatid_events_data';
+        const ACTIVITIES_STORAGE_KEY = 'jemaatid_activities_data';
         const CHURCH_NAME_KEY = 'jemaatid_church_name';
         
         let eventsData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let activitiesData = JSON.parse(localStorage.getItem(ACTIVITIES_STORAGE_KEY)) || [];
         let churchName = localStorage.getItem(CHURCH_NAME_KEY) || 'Gereja JemaatID';
         let isFirstLoad = true;
         let currentAnalyticsData = {};
@@ -409,12 +545,20 @@
                 const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
                 return dateB - dateA;
             });
+
+            activitiesData.sort((a, b) => {
+                const dateA = new Date(`${a.date}T${a.time || '00:00'}`);
+                const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
+                return dateB - dateA;
+            });
             
             populateMonthFilter();
             renderDashboard();
             renderTable();
+            renderActivitiesTable();
             
             localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsData));
+            localStorage.setItem(ACTIVITIES_STORAGE_KEY, JSON.stringify(activitiesData));
         }
 
         function calculateAdvancedAnalytics(filterValue) {
@@ -458,7 +602,6 @@
             result.avgAttendance = Math.round(result.totalAttendance / result.totalEvents);
             result.avgIncomePerAttendee = result.totalAttendance > 0 ? Math.round(result.totalIncome / result.totalAttendance) : 0;
 
-            // Analisa Preacher (Pengkhotbah)
             const preacherMap = {};
             filteredEvents.forEach(item => {
                 const p = (item.preacher || 'Tidak Tercatat').trim();
@@ -471,14 +614,13 @@
                 name,
                 count: preacherMap[name].count,
                 avgAtt: Math.round(preacherMap[name].totalAtt / preacherMap[name].count)
-            })).sort((a, b) => b.avgAtt - a.avgAtt); // Urutkan berdasarkan rata-rata kehadiran tertinggi (paling penuh)
+            })).sort((a, b) => b.avgAtt - a.avgAtt); 
 
             result.preacherRanking = preacherList;
             if (preacherList.length > 0) {
                 result.topPreacher = `${preacherList[0].name} (Rata-rata ${preacherList[0].avgAtt} jiwa/ibadah)`;
             }
 
-            // Analisa Worship Leader (WL)
             const wlMap = {};
             filteredEvents.forEach(item => {
                 const wl = (item.wl || 'Tidak Tercatat').trim();
@@ -498,7 +640,6 @@
                 result.topWL = `${wlList[0].name} (Rata-rata ${wlList[0].avgAtt} jiwa/ibadah)`;
             }
 
-            // MoM / YTD Calculation
             if (filterValue !== 'all') {
                 const [y, m] = filterValue.split('-').map(Number);
                 let prevM = m - 1; let prevY = y;
@@ -520,17 +661,12 @@
                 } else {
                     result.momText = `<span class="text-indigo-600 font-bold">Data awal</span>`;
                 }
-
-                const ytdData = allEvents.filter(d => d.date && d.date.startsWith(y.toString()) && d.date <= filterValue + '-31');
-                result.ytdTotal = ytdData.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
             } else {
                 const uniqueMonths = new Set(allEvents.map(d => d.date ? d.date.substring(0,7) : '')).size;
                 const avgPerMonth = uniqueMonths > 0 ? Math.round(result.totalAttendance / uniqueMonths) : result.totalAttendance;
                 result.momText = `<span class="text-indigo-600 font-bold">${avgPerMonth} jiwa</span> rata-rata/bulan`;
-                result.ytdTotal = result.totalAttendance;
             }
 
-            // Analisis Finansial (Senior Analyst Insight)
             if (result.netFinance > 0) {
                 result.suggestionPoints.push(`Kesehatan Keuangan: Surplus sebesar ${formatCurrency(result.netFinance)}. Rasio penerimaan per jiwa adalah ${formatCurrency(result.avgIncomePerAttendee)}. Keuangan dalam kondisi sangat sehat.`);
             } else if (result.netFinance < 0) {
@@ -539,7 +675,6 @@
                 result.suggestionPoints.push(`Kesehatan Keuangan: Seimbang (Break-even). Penerimaan menutupi total pengeluaran secara akurat.`);
             }
 
-            // Analisis Pelayan (Preacher & WL Insight)
             if (preacherList.length > 0) {
                 result.suggestionPoints.push(`Khotbah Favorit: Pengkhotbah '${preacherList[0].name}' mencatatkan rata-rata jemaat tertinggi (${preacherList[0].avgAtt} jiwa). Pola khotbah atau topiknya sangat diminati jemaat.`);
             }
@@ -588,7 +723,6 @@
                 netEl.className = 'text-lg font-bold text-red-600';
             }
 
-            // Render Advanced Analytics
             currentAnalyticsData = calculateAdvancedAnalytics(filterValue);
             const analyticsContainer = document.getElementById('analytics-container');
             const suggestionContent = document.getElementById('suggestion-content');
@@ -653,7 +787,6 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Header Dokumen
             doc.setFont("helvetica", "bold");
             doc.setFontSize(16);
             doc.setTextColor(30, 58, 138);
@@ -671,7 +804,6 @@
             doc.setDrawColor(200, 200, 200);
             doc.line(14, 44, 196, 44);
 
-            // Ringkasan Eksekutif (Kehadiran & Keuangan)
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
@@ -686,7 +818,6 @@
             doc.text(`• Pengkhotbah Utama      : ${currentAnalyticsData.topPreacher}`, 14, 89);
             doc.text(`• Worship Leader Utama   : ${currentAnalyticsData.topWL}`, 14, 96);
 
-            // Analisis & Rekomendasi Senior
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.text("2. Wawasan Analis & Rekomendasi Strategis", 14, 108);
@@ -702,7 +833,6 @@
 
             yPos += 5;
 
-            // Tabel Rincian Data
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.text("3. Rincian Data Ibadah", 14, yPos);
@@ -982,7 +1112,7 @@
 
             Swal.fire({
                 title: 'Hapus Semua Data?',
-                text: "Anda akan menghapus seluruh data laporan. Lanjutkan?",
+                text: "Anda akan menghapus seluruh data laporan ibadah. Lanjutkan?",
                 icon: 'error',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -993,46 +1123,272 @@
                 if (result.isConfirmed) {
                     eventsData = [];
                     updateUI();
-                    Swal.fire('Dikosongkan!', 'Semua data telah dihapus.', 'success');
+                    Swal.fire('Dikosongkan!', 'Semua data ibadah telah dihapus.', 'success');
+                }
+            });
+        }
+
+        function toggleActivityFields() {
+            const type = document.getElementById('act-form-type').value;
+            const wrapper = document.getElementById('dynamic-fields-wrapper');
+            const fLoc = document.getElementById('field-location');
+            const fRel = document.getElementById('field-religion');
+            const fDeath = document.getElementById('field-death-date');
+
+            // Sembunyikan semua terlebih dahulu
+            wrapper.classList.add('hidden');
+            fLoc.classList.add('hidden');
+            fRel.classList.add('hidden');
+            fDeath.classList.add('hidden');
+
+            let showWrapper = false;
+
+            // Tampilkan field lokasi hanya untuk kegiatan tertentu
+            if (['Pemberkatan Rumah', 'Kematian / Penghiburan', 'Kunjungan Jemaat', 'Lainnya'].includes(type)) {
+                fLoc.classList.remove('hidden');
+                showWrapper = true;
+            }
+
+            // Tampilkan field agama untuk Baptisan
+            if (type === 'Baptisan') {
+                fRel.classList.remove('hidden');
+                showWrapper = true;
+            }
+
+            // Tampilkan field tanggal meninggal untuk kematian
+            if (type === 'Kematian / Penghiburan') {
+                fDeath.classList.remove('hidden');
+                showWrapper = true;
+            }
+
+            if (showWrapper) {
+                wrapper.classList.remove('hidden');
+            }
+        }
+
+        function renderActivitiesTable() {
+            const tbody = document.getElementById('activities-table-body');
+            const emptyState = document.getElementById('activity-empty-state');
+            tbody.innerHTML = '';
+
+            if (activitiesData.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            activitiesData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-purple-50/50 transition-colors group';
+                
+                let iconClass = 'fa-clipboard-list';
+                if(item.type === 'Baptisan') iconClass = 'fa-water';
+                else if(item.type === 'Penyerahan Anak') iconClass = 'fa-child-reaching';
+                else if(item.type === 'Kematian / Penghiburan') iconClass = 'fa-cross';
+                else if(item.type === 'Pemberkatan Nikah') iconClass = 'fa-rings-wedding';
+                else if(item.type === 'Pemberkatan Rumah') iconClass = 'fa-house-chimney';
+                else if(item.type === 'Konseling' || item.type === 'Kunjungan Jemaat') iconClass = 'fa-hands-holding-child';
+                
+                let detailHtml = '';
+                if(item.type === 'Baptisan' && item.religion) {
+                    detailHtml = `<div class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-hands-praying mr-1"></i> Asal: ${item.religion}</div>`;
+                }
+                if(item.type === 'Kematian / Penghiburan' && item.deathDate) {
+                    detailHtml = `<div class="text-xs text-red-500 mt-1"><i class="fa-solid fa-calendar-xmark mr-1"></i> Meninggal: ${formatDate(item.deathDate)}</div>`;
+                }
+                if(item.location && ['Pemberkatan Rumah', 'Kematian / Penghiburan', 'Kunjungan Jemaat', 'Lainnya'].includes(item.type)) {
+                    detailHtml += `<div class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-location-dot mr-1"></i> ${item.location}</div>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 align-top">
+                        <div class="font-medium text-gray-800">${formatDate(item.date)}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1"></i> ${item.time || '-'}</div>
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="font-bold text-purple-700 bg-purple-100 px-2 py-1 rounded-md inline-flex items-center text-xs mb-2">
+                            <i class="fa-solid ${iconClass} mr-1"></i> ${item.type}
+                        </div>
+                        ${item.notes ? `<div class="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title="${item.notes}">Catatan: ${item.notes}</div>` : ''}
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="font-semibold text-gray-800">${item.name}</div>
+                        ${detailHtml}
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="text-sm font-medium text-gray-700">
+                            ${item.server ? `<i class="fa-solid fa-user-tie text-gray-400 mr-1"></i> ${item.server}` : '-'}
+                        </div>
+                    </td>
+                    <td class="p-4 align-top text-center">
+                        <div class="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                            <button type="button" onclick="editActivity('${item.id}')" class="text-purple-500 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 p-2 rounded transition-colors" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button type="button" onclick="confirmDeleteActivity('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition-colors" title="Hapus">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openActivityModal() {
+            document.getElementById('activity-form').reset();
+            document.getElementById('act-form-id').value = '';
+            document.getElementById('activity-modal-title').innerText = 'Tambah Kegiatan Baru';
+            
+            // Trigger perubahan untuk menyembunyikan dynamic fields secara default
+            toggleActivityFields(); 
+            
+            const backdrop = document.getElementById('activity-modal-backdrop');
+            const modal = document.getElementById('activity-modal');
+            backdrop.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave');
+            modal.classList.add('modal-enter');
+        }
+
+        function closeActivityModal() {
+            const modal = document.getElementById('activity-modal');
+            const backdrop = document.getElementById('activity-modal-backdrop');
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-leave');
+            setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function saveActivityData(e) {
+            e.preventDefault();
+            const id = document.getElementById('act-form-id').value;
+            const type = document.getElementById('act-form-type').value;
+            
+            const newData = {
+                id: id ? id : 'act_' + Date.now().toString(),
+                type: type,
+                name: document.getElementById('act-form-name').value,
+                date: document.getElementById('act-form-date').value,
+                time: document.getElementById('act-form-time').value,
+                server: document.getElementById('act-form-server').value,
+                notes: document.getElementById('act-form-notes').value,
+                // Kolom dinamis berdasarkan LoV
+                location: ['Pemberkatan Rumah', 'Kematian / Penghiburan', 'Kunjungan Jemaat', 'Lainnya'].includes(type) ? document.getElementById('act-form-location').value : '',
+                religion: type === 'Baptisan' ? document.getElementById('act-form-religion').value : '',
+                deathDate: type === 'Kematian / Penghiburan' ? document.getElementById('act-form-death-date').value : ''
+            };
+
+            if (id) {
+                const index = activitiesData.findIndex(item => item.id === id);
+                if (index !== -1) activitiesData[index] = newData;
+                Swal.fire({ title: 'Berhasil', text: 'Kegiatan berhasil diupdate.', icon: 'success', timer: 1500, showConfirmButton: false });
+            } else {
+                activitiesData.push(newData);
+                Swal.fire({ title: 'Berhasil', text: 'Kegiatan ditambahkan.', icon: 'success', timer: 1500, showConfirmButton: false });
+            }
+            closeActivityModal(); 
+            updateUI();
+        }
+
+        function editActivity(id) {
+            const data = activitiesData.find(item => item.id === id);
+            if (!data) return;
+            
+            document.getElementById('act-form-id').value = data.id;
+            document.getElementById('act-form-type').value = data.type || '';
+            document.getElementById('act-form-name').value = data.name || '';
+            document.getElementById('act-form-date').value = data.date || '';
+            document.getElementById('act-form-time').value = data.time || '';
+            document.getElementById('act-form-location').value = data.location || '';
+            document.getElementById('act-form-server').value = data.server || '';
+            document.getElementById('act-form-notes').value = data.notes || '';
+            document.getElementById('act-form-religion').value = data.religion || '';
+            document.getElementById('act-form-death-date').value = data.deathDate || '';
+            
+            toggleActivityFields();
+
+            document.getElementById('activity-modal-title').innerText = 'Edit Kegiatan';
+            const backdrop = document.getElementById('activity-modal-backdrop');
+            const modal = document.getElementById('activity-modal');
+            backdrop.classList.remove('hidden'); modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave'); modal.classList.add('modal-enter');
+        }
+
+        function confirmDeleteActivity(id) {
+            Swal.fire({ title: 'Hapus Kegiatan?', text: "Data tidak dapat dikembalikan!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Ya, hapus!', cancelButtonText: 'Batal' })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    activitiesData = activitiesData.filter(item => item.id !== id);
+                    updateUI(); Swal.fire('Terhapus!', 'Kegiatan dihapus.', 'success');
+                }
+            });
+        }
+
+        function clearAllActivities() {
+            if(activitiesData.length === 0) return Swal.fire('Info', 'Tidak ada data kegiatan.', 'info');
+            Swal.fire({ title: 'Kosongkan Kegiatan?', text: "Semua daftar kegiatan pastoral akan dihapus. Lanjutkan?", icon: 'error', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Ya, Kosongkan!', cancelButtonText: 'Batal' })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    activitiesData = []; updateUI(); Swal.fire('Dikosongkan!', 'Data kegiatan dihapus.', 'success');
                 }
             });
         }
 
         function exportToExcel() {
-            if (eventsData.length === 0) {
+            if (eventsData.length === 0 && activitiesData.length === 0) {
                 Swal.fire('Oops!', 'Tidak ada data untuk diexport.', 'warning');
                 return;
             }
 
-            const excelData = eventsData.map(item => ({
-                'ID (Jangan Diubah)': item.id,
-                'Tanggal (YYYY-MM-DD)': item.date,
-                'Waktu': item.time || '',
-                'Nama Acara': item.eventName,
-                'Lokasi': item.location || '',
-                'Tema Khotbah': item.sermonTheme || '',
-                'Total Kehadiran': parseInt(item.attendance) || 0,
-                'Jemaat Baru': parseInt(item.newVisitors) || 0,
-                'Penerimaan (Rp)': parseInt(item.income) || 0,
-                'Pengeluaran (Rp)': parseInt(item.expense) || 0,
-                'Pengkhotbah': item.preacher || '',
-                'Worship Leader': item.wl || '',
-                'Pemusik': item.musicians || '',
-                'Pelayan Lainnya': item.otherServers || '',
-                'Catatan': item.notes || ''
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Ibadah");
 
-            const wscols = [
-                {wch: 15}, {wch: 12}, {wch: 8}, {wch: 25}, {wch: 20}, {wch: 25}, 
-                {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}, 
-                {wch: 25}, {wch: 30}, {wch: 40}
-            ];
-            worksheet['!cols'] = wscols;
-            XLSX.writeFile(workbook, `${churchName.replace(/\s+/g, '_')}_Laporan_Ibadah.xlsx`);
+            // Build Sheet 1 (Ibadah)
+            if (eventsData.length > 0) {
+                const excelData = eventsData.map(item => ({
+                    'ID (Jangan Diubah)': item.id,
+                    'Tanggal (YYYY-MM-DD)': item.date,
+                    'Waktu': item.time || '',
+                    'Nama Acara': item.eventName,
+                    'Lokasi': item.location || '',
+                    'Tema Khotbah': item.sermonTheme || '',
+                    'Total Kehadiran': parseInt(item.attendance) || 0,
+                    'Jemaat Baru': parseInt(item.newVisitors) || 0,
+                    'Penerimaan (Rp)': parseInt(item.income) || 0,
+                    'Pengeluaran (Rp)': parseInt(item.expense) || 0,
+                    'Pengkhotbah': item.preacher || '',
+                    'Worship Leader': item.wl || '',
+                    'Pemusik': item.musicians || '',
+                    'Pelayan Lainnya': item.otherServers || '',
+                    'Catatan': item.notes || ''
+                }));
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const wscols = [{wch: 15}, {wch: 12}, {wch: 8}, {wch: 25}, {wch: 20}, {wch: 25}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 20}, {wch: 25}, {wch: 30}, {wch: 40}];
+                worksheet['!cols'] = wscols;
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Ibadah");
+            }
+
+            // Build Sheet 2 (Kegiatan Pastoral)
+            if (activitiesData.length > 0) {
+                const excelDataAct = activitiesData.map(item => ({
+                    'ID (Jangan Diubah)': item.id,
+                    'Jenis Kegiatan': item.type,
+                    'Nama Terkait': item.name,
+                    'Tanggal (YYYY-MM-DD)': item.date,
+                    'Waktu': item.time || '',
+                    'Lokasi / Alamat': item.location || '',
+                    'Pelayan / Petugas': item.server || '',
+                    'Asal Agama (Khusus Baptis)': item.religion || '',
+                    'Tgl Meninggal (Khusus Kematian)': item.deathDate || '',
+                    'Catatan': item.notes || ''
+                }));
+                const worksheetAct = XLSX.utils.json_to_sheet(excelDataAct);
+                const wscolsAct = [{wch: 15}, {wch: 20}, {wch: 25}, {wch: 12}, {wch: 8}, {wch: 30}, {wch: 20}, {wch: 20}, {wch: 15}, {wch: 30}];
+                worksheetAct['!cols'] = wscolsAct;
+                XLSX.utils.book_append_sheet(workbook, worksheetAct, "Kegiatan Pastoral");
+            }
+
+            XLSX.writeFile(workbook, `${churchName.replace(/\s+/g, '_')}_Laporan_Terpadu.xlsx`);
         }
 
         function excelValueToYMD(val) {
@@ -1093,58 +1449,69 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
                     
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    if(jsonData.length === 0) {
-                        Swal.fire('Error', 'File Excel kosong atau format tidak sesuai.', 'error');
-                        return;
+                    let importedIbadah = 0, updatedIbadah = 0;
+                    let importedKegiatan = 0, updatedKegiatan = 0;
+
+                    // 1. Sheet Ibadah
+                    const sheetIbadahName = workbook.SheetNames.find(name => name.toLowerCase().includes("ibadah"));
+                    if (sheetIbadahName) {
+                        const jsonIbadah = XLSX.utils.sheet_to_json(workbook.Sheets[sheetIbadahName]);
+                        jsonIbadah.forEach(row => {
+                            if (row['Nama Acara'] && row['Tanggal (YYYY-MM-DD)']) {
+                                const existingId = row['ID (Jangan Diubah)'];
+                                const formattedData = {
+                                    id: existingId ? existingId.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                                    eventName: row['Nama Acara'], location: row['Lokasi'] || '',
+                                    date: excelValueToYMD(row['Tanggal (YYYY-MM-DD)']), time: excelValueToHHMM(row['Waktu']),
+                                    attendance: row['Total Kehadiran'] || row['Kehadiran'] || 0, newVisitors: row['Jemaat Baru'] || 0,
+                                    income: row['Penerimaan (Rp)'] || 0, expense: row['Pengeluaran (Rp)'] || 0,
+                                    preacher: row['Pengkhotbah'] || '', sermonTheme: row['Tema Khotbah'] || '', wl: row['Worship Leader'] || '',
+                                    musicians: row['Pemusik'] || '', otherServers: row['Pelayan Lainnya'] || row['Pelayan Ibadah'] || '', notes: row['Catatan'] || ''
+                                };
+                                const existIndex = eventsData.findIndex(item => item.id === formattedData.id);
+                                if (existIndex !== -1) { eventsData[existIndex] = formattedData; updatedIbadah++; }
+                                else { eventsData.push(formattedData); importedIbadah++; }
+                            }
+                        });
                     }
 
-                    let importedCount = 0;
-                    let updatedCount = 0;
-
-                    jsonData.forEach(row => {
-                        if (row['Nama Acara'] && row['Tanggal (YYYY-MM-DD)']) {
-                            const existingId = row['ID (Jangan Diubah)'];
-                            const formattedData = {
-                                id: existingId ? existingId.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                                eventName: row['Nama Acara'],
-                                location: row['Lokasi'] || '',
-                                date: excelValueYMD = excelValueToYMD(row['Tanggal (YYYY-MM-DD)']),
-                                time: excelValueToHHMM(row['Waktu']),
-                                attendance: row['Total Kehadiran'] || row['Kehadiran'] || 0,
-                                newVisitors: row['Jemaat Baru'] || 0,
-                                income: row['Penerimaan (Rp)'] || 0,
-                                expense: row['Pengeluaran (Rp)'] || 0,
-                                preacher: row['Pengkhotbah'] || '',
-                                sermonTheme: row['Tema Khotbah'] || '',
-                                wl: row['Worship Leader'] || '',
-                                musicians: row['Pemusik'] || '',
-                                otherServers: row['Pelayan Lainnya'] || row['Pelayan Ibadah'] || '',
-                                notes: row['Catatan'] || ''
-                            };
-
-                            const existIndex = eventsData.findIndex(item => item.id === formattedData.id);
-                            if (existIndex !== -1) {
-                                eventsData[existIndex] = formattedData;
-                                updatedCount++;
-                            } else {
-                                eventsData.push(formattedData);
-                                importedCount++;
+                    // 2. Sheet Kegiatan Pastoral
+                    const sheetKegiatanName = workbook.SheetNames.find(name => name.toLowerCase().includes("kegiatan") || name.toLowerCase().includes("pastoral"));
+                    if (sheetKegiatanName) {
+                        const jsonKegiatan = XLSX.utils.sheet_to_json(workbook.Sheets[sheetKegiatanName]);
+                        jsonKegiatan.forEach(row => {
+                            if (row['Jenis Kegiatan'] && row['Nama Terkait']) {
+                                const existingId = row['ID (Jangan Diubah)'];
+                                const formattedData = {
+                                    id: existingId ? existingId.toString() : 'act_' + Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                                    type: row['Jenis Kegiatan'], name: row['Nama Terkait'],
+                                    date: excelValueToYMD(row['Tanggal (YYYY-MM-DD)']), time: excelValueToHHMM(row['Waktu']),
+                                    location: row['Lokasi / Alamat'] || '', server: row['Pelayan / Petugas'] || '',
+                                    religion: row['Asal Agama (Khusus Baptis)'] || '', deathDate: excelValueToYMD(row['Tgl Meninggal (Khusus Kematian)']),
+                                    notes: row['Catatan'] || ''
+                                };
+                                const existIndex = activitiesData.findIndex(item => item.id === formattedData.id);
+                                if (existIndex !== -1) { activitiesData[existIndex] = formattedData; updatedKegiatan++; }
+                                else { activitiesData.push(formattedData); importedKegiatan++; }
                             }
-                        }
-                    });
+                        });
+                    }
 
-                    updateUI();
-                    Swal.fire('Berhasil Import', `Menambahkan ${importedCount} data baru dan memperbarui ${updatedCount} data lama.`, 'success');
-                    
+                    if (importedIbadah === 0 && updatedIbadah === 0 && importedKegiatan === 0 && updatedKegiatan === 0) {
+                        Swal.fire('Format Salah', 'Data tidak ditemukan. Pastikan Anda mengimpor file Excel yang sesuai.', 'warning');
+                    } else {
+                        updateUI(); 
+                        Swal.fire({
+                            title: 'Berhasil Import',
+                            html: `<b>Ibadah:</b> ${importedIbadah} baru, ${updatedIbadah} diupdate.<br><b>Kegiatan:</b> ${importedKegiatan} baru, ${updatedKegiatan} diupdate.`,
+                            icon: 'success'
+                        });
+                    }
                 } catch (error) {
                     console.error(error);
                     Swal.fire('Gagal Import', 'Pastikan format file Excel sesuai.', 'error');
                 }
-                event.target.value = {};
+                event.target.value = '';
             };
             
             reader.readAsArrayBuffer(file);
