@@ -276,7 +276,7 @@
                         </button>
                         <p class="text-xs text-slate-500 mt-4">*Ukuran file: 12KB. Kompatibel dengan MS Excel & Google Sheets.</p>
                     </div>
-
+                    
                     <!-- Right: Go to App -->
                     <div class="p-10 lg:p-16 flex flex-col justify-center relative overflow-hidden">
                         <!-- BG Decoration -->
@@ -402,9 +402,41 @@
             }, 300);
         }
 
-        // Mock Download Excel
+        // Fungsi Download Excel dari GitHub
         function downloadExcel() {
-            showModal('success', 'Template Diunduh!', 'File "Template_Data_JemaatID.xlsx" simulasi berhasil diunduh. Silakan isi sesuai panduan kolom.');
+            // JANGAN LUPA: Ganti teks di bawah ini dengan link RAW kamu yang asli ya!
+            const fileUrl = 'PASTE_LINK_RAW_GITHUB_KAMU_DI_SINI';
+            
+            showModal('info', 'Mengunduh...', 'Sedang menyiapkan file template Excel Anda.');
+
+            fetch(fileUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const link = document.createElement('a');
+                    const url = window.URL.createObjectURL(blob);
+                    link.href = url;
+                    link.download = 'Template_Data_Jemaat.xlsx'; 
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Tutup modal loading dan tampilkan sukses
+                    closeModal();
+                    setTimeout(() => {
+                        showModal('success', 'Berhasil!', 'Template Excel berhasil diunduh.');
+                    }, 400);
+                })
+                .catch(error => {
+                    console.error('Gagal mendownload file:', error);
+                    closeModal();
+                    setTimeout(() => {
+                        alert('Maaf, gagal mengunduh template. Pastikan link GitHub sudah benar.');
+                    }, 400);
+                });
         }
 
         // Mock Open App
