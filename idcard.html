@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Cetak Kartu Tanja Jemaat</title>
+    <title>Sistem Cetak KTJ - GBI Light of the City</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
@@ -33,6 +33,11 @@
             --card-bg-2: #1d4ed8;
             --card-text-color: #ffffff;
             --card-accent-color: #d4af37;
+            --logo-x-front: 0mm;
+            --logo-y-front: 0mm;
+            --logo-x-back: 0mm;
+            --logo-y-back: 0mm;
+            --header-line-spacing: 1.5mm;
         }
 
         .card-wrapper {
@@ -56,7 +61,7 @@
         }
 
         /* --- TAMPILAN DEPAN --- */
-        .front-logo-area { position: absolute; top: 4mm; left: 4mm; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 1mm; }
+        .front-logo-area { position: absolute; top: 4mm; left: 4mm; z-index: 10; display: flex; flex-direction: column; align-items: flex-start; gap: 1mm; transform: translate(var(--logo-x-front), var(--logo-y-front)); transition: transform 0.3s ease; }
         .gbi-logo { width: calc(35mm * var(--logo-scale-front)); height: auto; object-fit: contain; transition: width 0.3s ease; }
         
         .front-content { position: absolute; bottom: 4mm; left: 4mm; z-index: 10; width: 55%; }
@@ -94,7 +99,7 @@
 
         /* --- TAMPILAN BELAKANG --- */
         .back-container { padding: 3mm 5mm; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-        .back-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5mm; border-bottom: 0.5px solid var(--card-accent-color); padding-bottom: 1.5mm; transition: border-bottom 0.3s ease; }
+        .back-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5mm; border-bottom: 0.5px solid var(--card-accent-color); padding-bottom: var(--header-line-spacing); transition: border-bottom 0.3s ease, padding-bottom 0.3s ease; }
         .back-title { font-size: calc(11pt * var(--font-scale-back)); font-weight: 800; color: var(--card-accent-color); letter-spacing: 0.5px; transition: font-size 0.3s ease, color 0.3s ease;}
         .back-subtitle { font-size: calc(6.5pt * var(--font-scale-back)); font-weight: 400; color: #e4e4e7; transition: font-size 0.3s ease;}
         
@@ -111,7 +116,7 @@
         .back-footer-title { font-size: calc(6pt * var(--font-scale-back)); font-weight: 700; color: var(--card-accent-color); margin-bottom: 0.5mm; transition: font-size 0.3s ease, color 0.3s ease;}
         .back-footer-text { font-size: calc(4.5pt * var(--font-scale-back)); color: #a1a1aa; line-height: 1.2; transition: font-size 0.3s ease;}
 
-        #logo-belakang { height: calc(4mm * var(--logo-scale-back)); width: auto; object-fit: contain; transition: height 0.3s ease; }
+        #logo-belakang { height: calc(4mm * var(--logo-scale-back)); width: auto; object-fit: contain; transform: translate(var(--logo-x-back), var(--logo-y-back)); transition: height 0.3s ease, transform 0.3s ease; }
 
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -124,11 +129,14 @@
 
     <!-- Navbar -->
     <nav class="bg-[#18181b] text-white shadow-lg py-4 px-6 flex justify-between items-center border-b-4 border-[#d4af37]">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
+            <a href="/" class="text-[#d4af37] hover:text-white transition-colors bg-gray-800 hover:bg-gray-700 p-2 rounded-lg border border-gray-700 flex items-center justify-center" title="Kembali ke Beranda">
+                <i class="fa-solid fa-house text-lg"></i>
+            </a>
             <i class="fa-solid fa-id-card text-2xl text-[#d4af37]"></i>
             <div>
-                <h1 class="text-xl font-bold tracking-wide leading-tight text-[#d4af37]">Sistem Cetak KTJ</h1>
-                <p class="text-xs text-gray-300">Untuk gereja</p>
+                <h1 class="text-xl font-bold tracking-wide leading-tight text-[#d4af37]">E-Card Generator</h1>
+                <p class="text-xs text-gray-300">GBI Light of the City</p>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -142,10 +150,10 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="flex-1 p-6 max-w-[1400px] mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-8">
         
         <!-- Kolom Kiri: Form & Settings (7 Kolom) -->
-        <div class="lg:col-span-7 space-y-6">
+        <div class="md:col-span-7 space-y-6">
             
             <!-- Panel Import Data (Paling Atas) -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
@@ -220,17 +228,20 @@
 
             <!-- Panel Pengaturan -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <h2 class="text-lg font-bold text-gray-800 mb-5 flex items-center"><i class="fa-solid fa-sliders text-blue-600 mr-2 text-xl"></i> Pengaturan Spesifik Desain</h2>
+                <button id="btn-toggle-settings" class="w-full flex justify-between items-center text-left focus:outline-none group">
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center group-hover:text-blue-600 transition-colors"><i class="fa-solid fa-sliders text-blue-600 mr-2 text-xl"></i> Pengaturan Spesifik Desain</h2>
+                    <i id="icon-toggle-settings" class="fa-solid fa-chevron-up text-gray-500 transition-transform duration-300"></i>
+                </button>
                 
-                <!-- General Radius -->
-                <div class="mb-5 pb-4 border-b">
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-bold text-gray-700">Lengkungan Sudut (Radius) Kartu</label>
-                        <span id="val-radius" class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">3.18mm</span>
+                <div id="panel-settings-content" class="mt-5 transition-all duration-300">
+                    <!-- General Radius -->
+                    <div class="mb-5 pb-4 border-b">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-bold text-gray-700">Lengkungan Sudut (Radius) Kartu</label>
+                            <span id="val-radius" class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">3.18mm</span>
+                        </div>
+                        <input type="range" id="setting-radius" min="0" max="10" step="0.5" value="3.18" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
-                    <input type="range" id="setting-radius" min="0" max="10" step="0.5" value="3.18" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                </div>
-
                 <!-- General Background Color & Font Color -->
                 <div class="mb-6 pb-4 border-b grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -286,6 +297,21 @@
                             <input type="range" id="setting-logo-front" min="0.5" max="2" step="0.1" value="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                         </div>
 
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-semibold text-gray-600">Geser Logo (X)</label>
+                                </div>
+                                <input type="range" id="setting-logo-x-front" min="-20" max="20" step="1" value="0" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-semibold text-gray-600">Geser Logo (Y)</label>
+                                </div>
+                                <input type="range" id="setting-logo-y-front" min="-20" max="20" step="1" value="0" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                        </div>
+
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                             <label class="block text-[11px] font-semibold text-gray-600 mb-2">Upload Logo Depan</label>
                             <input type="file" id="logo-depan-upload" accept="image/*" class="block w-full text-[11px] text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-white file:text-blue-700 hover:file:bg-blue-50 cursor-pointer">
@@ -329,6 +355,30 @@
                             <input type="range" id="setting-logo-back" min="0.5" max="4" step="0.1" value="1" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
                         </div>
                         
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-semibold text-gray-600">Geser Logo (X)</label>
+                                </div>
+                                <input type="range" id="setting-logo-x-back" min="-20" max="20" step="1" value="0" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="block text-[10px] font-semibold text-gray-600">Geser Logo (Y)</label>
+                                </div>
+                                <input type="range" id="setting-logo-y-back" min="-20" max="20" step="1" value="0" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                            </div>
+                        </div>
+
+                        <!-- Jarak Garis Header -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[11px] font-semibold text-gray-600">Posisi Garis Bawah Header</label>
+                                <span id="val-header-line" class="text-[10px] font-bold text-green-600">1.5mm</span>
+                            </div>
+                            <input type="range" id="setting-header-line" min="0" max="15" step="0.5" value="1.5" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                        </div>
+
                         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                             <label class="block text-[11px] font-semibold text-gray-600 mb-2">Upload Logo Belakang</label>
                             <input type="file" id="logo-belakang-upload" accept="image/*" class="block w-full text-[11px] text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-semibold file:bg-white file:text-green-700 hover:file:bg-green-50 cursor-pointer">
@@ -336,6 +386,10 @@
 
                         <!-- Teks Dinamis Belakang -->
                         <div class="pt-2 border-t space-y-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-600 mb-1">Judul Kartu</label>
+                                <input type="text" id="setting-text-main-title" class="form-input block w-full rounded-md border-gray-300 shadow-sm border p-1.5 text-[11px] focus:ring-green-500 focus:border-green-500 font-medium" value="KARTU TANDA JEMAAT">
+                            </div>
                             <div>
                                 <label class="block text-[11px] font-semibold text-gray-600 mb-1">Teks Subtitle (Nama Institusi)</label>
                                 <input type="text" id="setting-text-subtitle" class="form-input block w-full rounded-md border-gray-300 shadow-sm border p-1.5 text-[11px] focus:ring-green-500 focus:border-green-500 font-medium" value="GBI LIGHT OF THE CITY">
@@ -406,9 +460,10 @@
             </div>
 
         </div>
+        </div> <!-- Penutup Kolom Kiri yang sebelumnya terlewat -->
 
         <!-- Kolom Kanan: Live Preview (5 Kolom) -->
-        <div class="lg:col-span-5">
+        <div class="md:col-span-5">
             <div class="bg-slate-200 p-6 rounded-2xl shadow-inner border border-slate-300 sticky top-6">
                 <h2 class="text-lg font-bold text-slate-700 mb-6 text-center tracking-wider">LIVE PREVIEW</h2>
                 
@@ -445,7 +500,7 @@
                              <div class="back-container">
                                 <div class="back-header">
                                     <div>
-                                        <div class="back-title">KARTU TANDA JEMAAT</div>
+                                        <div class="back-title" id="preview-back-main-title">KARTU TANDA JEMAAT</div>
                                         <div class="back-subtitle" id="preview-back-subtitle">GBI LIGHT OF THE CITY</div>
                                     </div>
                                     <img id="logo-belakang" src="https://placehold.co/100x30/transparent/white?text=LOGO" alt="Logo LOC">
@@ -648,6 +703,12 @@
                 });
             }
 
+            // Geser Logo Depan
+            const sliderLogoXFront = document.getElementById('setting-logo-x-front');
+            const sliderLogoYFront = document.getElementById('setting-logo-y-front');
+            if(sliderLogoXFront) sliderLogoXFront.addEventListener('input', (e) => { document.documentElement.style.setProperty('--logo-x-front', `${e.target.value}mm`); });
+            if(sliderLogoYFront) sliderLogoYFront.addEventListener('input', (e) => { document.documentElement.style.setProperty('--logo-y-front', `${e.target.value}mm`); });
+
             // Ukuran Font & Logo Belakang
             const sliderFontBack = document.getElementById('setting-fontsize-back');
             const valFontBack = document.getElementById('val-fontsize-back');
@@ -666,6 +727,21 @@
                     const val = parseFloat(e.target.value);
                     valLogoBack.textContent = `${Math.round(val * 100)}%`;
                     document.documentElement.style.setProperty('--logo-scale-back', val);
+                });
+            }
+
+            // Geser Logo Belakang & Garis Header
+            const sliderLogoXBack = document.getElementById('setting-logo-x-back');
+            const sliderLogoYBack = document.getElementById('setting-logo-y-back');
+            const sliderHeaderLine = document.getElementById('setting-header-line');
+            const valHeaderLine = document.getElementById('val-header-line');
+            
+            if(sliderLogoXBack) sliderLogoXBack.addEventListener('input', (e) => { document.documentElement.style.setProperty('--logo-x-back', `${e.target.value}mm`); });
+            if(sliderLogoYBack) sliderLogoYBack.addEventListener('input', (e) => { document.documentElement.style.setProperty('--logo-y-back', `${e.target.value}mm`); });
+            if(sliderHeaderLine) {
+                sliderHeaderLine.addEventListener('input', (e) => {
+                    valHeaderLine.textContent = `${e.target.value}mm`;
+                    document.documentElement.style.setProperty('--header-line-spacing', `${e.target.value}mm`);
                 });
             }
 
@@ -696,14 +772,19 @@
             }
 
             // Parameterisasi Teks Statis Belakang
+            const inputBackMainTitle = document.getElementById('setting-text-main-title');
             const inputBackSubtitle = document.getElementById('setting-text-subtitle');
             const inputBackFooterTitle = document.getElementById('setting-text-footer-title');
             const inputBackFooterText = document.getElementById('setting-text-footer-content');
             
+            const prevBackMainTitle = document.getElementById('preview-back-main-title');
             const prevBackSubtitle = document.getElementById('preview-back-subtitle');
             const prevBackFooterTitle = document.getElementById('preview-back-footer-title');
             const prevBackFooterText = document.getElementById('preview-back-footer-text');
 
+            if(inputBackMainTitle && prevBackMainTitle) {
+                inputBackMainTitle.addEventListener('input', (e) => { prevBackMainTitle.textContent = e.target.value; });
+            }
             if(inputBackSubtitle && prevBackSubtitle) {
                 inputBackSubtitle.addEventListener('input', (e) => { prevBackSubtitle.textContent = e.target.value; });
             }
@@ -963,6 +1044,22 @@
 
             // Inisialisasi awal
             updatePreview();
+
+            // Fitur Expand/Collapse Panel Pengaturan
+            const btnToggleSettings = document.getElementById('btn-toggle-settings');
+            const iconToggleSettings = document.getElementById('icon-toggle-settings');
+            const panelSettingsContent = document.getElementById('panel-settings-content');
+
+            if (btnToggleSettings && panelSettingsContent && iconToggleSettings) {
+                btnToggleSettings.addEventListener('click', () => {
+                    panelSettingsContent.classList.toggle('hidden');
+                    if (panelSettingsContent.classList.contains('hidden')) {
+                        iconToggleSettings.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                    } else {
+                        iconToggleSettings.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                    }
+                });
+            }
         });
     </script>
 </body>
