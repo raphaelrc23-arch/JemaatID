@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Database Jemaat Gereja - Enterprise</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-lg flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-church text-xl text-indigo-100"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm md:text-lg font-bold tracking-wide">Database Jemaat Smart-Rel</h1>
+                    <p class="text-[10px] md:text-xs text-indigo-200">Integrasi NIJ & Standarisasi Data</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openModalImport()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-lg border border-indigo-500 transition flex items-center space-x-1 shadow-sm">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <span class="hidden sm:inline">Impor Excel</span>
+                </button>
+                <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg transition flex items-center space-x-1 shadow-sm">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    <span class="hidden sm:inline">Ekspor Excel</span>
+                </button>
+                <a href="index.html" title="Kembali ke Home" class="bg-white/10 hover:bg-white/20 text-white text-xs w-9 h-9 rounded-lg border border-indigo-500 transition flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full space-y-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 space-x-6 overflow-x-auto whitespace-nowrap">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="pb-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 transition flex items-center space-x-2">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Dashboard Pertumbuhan</span>
+            </button>
+            <button onclick="switchTab('jemaat')" id="tab-jemaat" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition flex items-center space-x-2">
+                <i class="fa-solid fa-users"></i>
+                <span>Data & Kartu Keluarga</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="section-dashboard" class="space-y-6">
+            <!-- Filter Periode Dashboard -->
+            <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm gap-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-line text-indigo-500 text-lg"></i>
+                    <h2 class="text-sm font-bold text-slate-800">Ringkasan Analitik Jemaat</h2>
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <span class="text-[10px] text-slate-500 font-medium uppercase tracking-wide hidden sm:inline">Periode:</span>
+                    <select id="dashPeriodeBulan" onchange="renderDashboard()" class="w-full sm:w-auto text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">Semua Bulan</option>
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                    <select id="dashPeriodeTahun" onchange="renderDashboard()" class="w-full sm:w-auto text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="2026">Tahun 2026</option>
+                        <option value="2025">Tahun 2025</option>
+                        <option value="2024">Tahun 2024</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wider">Total Jemaat Aktif</p>
+                    <div class="mt-2 flex items-baseline justify-between">
+                        <span id="statTotalJemaat" class="text-2xl font-bold text-slate-900">0</span>
+                        <span class="text-[10px] md:text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded"><i class="fa-solid fa-check"></i> Aktif</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wider">Sudah Baptis Air</p>
+                    <div class="mt-2 flex items-baseline justify-between">
+                        <span id="statBaptis" class="text-2xl font-bold text-blue-600">0</span>
+                        <span class="text-[10px] md:text-xs text-slate-500">Jiwa</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wider">Pertumbuhan YoY</p>
+                    <div class="mt-2 flex items-baseline justify-between">
+                        <span id="statYoy" class="text-2xl font-bold text-indigo-600">+8.5%</span>
+                        <span class="text-[10px] md:text-xs text-slate-500">vs Tahun Lalu</span>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-[10px] md:text-xs font-medium text-slate-500 uppercase tracking-wider">Pindah / Meninggal</p>
+                    <div class="mt-2 flex items-baseline justify-between">
+                        <span id="statNonAktif" class="text-2xl font-bold text-rose-600">0</span>
+                        <span class="text-[10px] md:text-xs text-slate-500">Non-Aktif</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Countdown -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <i class="fa-solid fa-hourglass-start text-amber-500"></i>
+                                <span>Ultah Terdekat (Aktif)</span>
+                            </h3>
+                        </div>
+                        <div id="countdownWidget" class="mt-4 space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- Ulang Tahun Bulan Ini -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <i class="fa-solid fa-cake-candles text-pink-500"></i>
+                                <span id="currentMonthTitle">Ulang Tahun Bulan Ini</span>
+                            </h3>
+                            <span id="countUltahBulanIni" class="text-xs font-semibold bg-pink-50 text-pink-600 px-2 py-0.5 rounded-full">0 Orang</span>
+                        </div>
+                        <div class="mt-4 overflow-x-auto max-h-60 overflow-y-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 uppercase sticky top-0">
+                                    <tr>
+                                        <th class="py-2 px-3">NIJ & Nama</th>
+                                        <th class="py-2 px-3">Tgl Lahir</th>
+                                        <th class="py-2 px-3">Usia</th>
+                                        <th class="py-2 px-3">Sektor Wilayah</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableUltahBulanIniBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-venus-mars text-indigo-500 mr-2"></i>Demografi Gender Jemaat (Aktif)</h3>
+                    <div id="chartGender" class="space-y-4"></div>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center mb-4 border-b border-slate-100 pb-2"><i class="fa-solid fa-users-rays text-indigo-500 mr-2"></i>Demografi Kategori Usia (Aktif)</h3>
+                    <div id="chartUsia" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: DATA JEMAAT & KELUARGA -->
+        <div id="section-jemaat" class="hidden space-y-4">
+            <!-- Filter & Action Bar -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                        </span>
+                        <input type="text" id="searchInput" oninput="renderTableJemaat()" placeholder="Cari NIJ, NIK, atau Nama..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <select id="filterStatus" onchange="renderTableJemaat()" class="w-full sm:w-40 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Semua">Semua Status</option>
+                        <option value="Aktif" selected>Hanya Aktif</option>
+                        <option value="Pindah">Pindah</option>
+                        <option value="Meninggal">Meninggal</option>
+                    </select>
+                    <select id="filterSektor" onchange="renderTableJemaat()" class="w-full sm:w-40 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="Semua">Semua Sektor</option>
+                        <option value="Sektor 1">Sektor 1</option>
+                        <option value="Sektor 2">Sektor 2</option>
+                        <option value="Sektor 3">Sektor 3</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                    <button onclick="openModalTambahJemaat()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center space-x-1 shadow-sm w-full sm:w-auto justify-center">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Tambah Data Jemaat</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Data Jemaat -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-4">Nama Lengkap & NIJ</th>
+                                <th class="py-3 px-4">Keluarga & Sektor</th>
+                                <th class="py-3 px-4">Profil & Demografi</th>
+                                <th class="py-3 px-4">Sakramen</th>
+                                <th class="py-3 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableJemaatBody" class="divide-y divide-slate-100">
+                            <!-- Diisi via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL: TAMBAH / EDIT DATA JEMAAT -->
+    <div id="modalJemaat" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden overflow-y-auto py-10">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 overflow-hidden shadow-xl border border-slate-200 relative my-auto">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center sticky top-0 z-10">
+                <div>
+                    <h3 id="modalJemaatTitle" class="text-sm font-bold text-slate-800">Tambah Data Jemaat Baru</h3>
+                    <p id="modalJemaatSubtitle" class="text-[10px] text-slate-500 mt-0.5">Membuat identitas / relasi keluarga</p>
+                </div>
+                <button onclick="closeModalJemaat()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="formJemaat" onsubmit="saveJemaat(event)" class="p-6 space-y-6 text-xs max-h-[75vh] overflow-y-auto">
+                <input type="hidden" id="editIndex">
+                <input type="hidden" id="kepalaKeluargaId" value="">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- KOLOM KIRI -->
+                    <div class="space-y-5">
+                        <!-- Identitas Utama -->
+                        <div>
+                            <h4 class="font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3 flex items-center"><i class="fa-regular fa-id-card mr-2 text-indigo-500"></i>Identitas Sistem & Negara</h4>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Status Pendaftar *</label>
+                                    <select id="statusKeluarga" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
+                                        <option value="Anggota Utama">Anggota Utama</option>
+                                        <option value="Suami">Suami</option>
+                                        <option value="Istri">Istri</option>
+                                        <option value="Anak">Anak</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Jenis Kelamin *</label>
+                                    <select id="jenisKelamin" required onchange="handleGenderChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="" disabled selected>Pilih Gender...</option>
+                                        <option value="L">Laki-laki</option>
+                                        <option value="P">Perempuan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block font-medium text-slate-700 mb-1">Nama Lengkap *</label>
+                                <input type="text" id="namaLengkap" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Sesuai Akta/KTP">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">No Induk Jemaat (NIJ) *</label>
+                                    <input type="text" id="nomorIndukJemaat" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Input NIJ manual">
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Nomor Induk (NIK KTP) *</label>
+                                    <input type="text" id="nomorInduk" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="16 Digit NIK KTP">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Demografi Dasar -->
+                        <div>
+                            <h4 class="font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3 flex items-center"><i class="fa-solid fa-users mr-2 text-indigo-500"></i>Demografi & Pendidikan</h4>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Tanggal Lahir *</label>
+                                    <input type="date" id="tanggalLahir" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Status Pernikahan *</label>
+                                    <select id="statusPernikahan" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="Belum Menikah">Belum Menikah</option>
+                                        <option value="Menikah">Menikah</option>
+                                        <option value="Cerai Hidup">Cerai Hidup</option>
+                                        <option value="Cerai Mati">Cerai Mati</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Pendidikan Terakhir *</label>
+                                    <select id="pendidikan" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="Belum/Tidak Sekolah">Belum/Tidak Sekolah</option>
+                                        <option value="SD/Sederajat">SD/Sederajat</option>
+                                        <option value="SMP/Sederajat">SMP/Sederajat</option>
+                                        <option value="SMA/Sederajat">SMA/Sederajat</option>
+                                        <option value="Diploma (D1-D4)">Diploma (D1-D4)</option>
+                                        <option value="Sarjana (S1)">Sarjana (S1)</option>
+                                        <option value="Pascasarjana (S2/S3)">Pascasarjana (S2/S3)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Pekerjaan Utama *</label>
+                                    <select id="pekerjaan" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="Belum/Tidak Bekerja">Belum/Tidak Bekerja</option>
+                                        <option value="Pelajar/Mahasiswa">Pelajar/Mahasiswa</option>
+                                        <option value="Mengurus Rumah Tangga">Mengurus Rumah Tangga</option>
+                                        <option value="PNS/TNI/Polri">PNS/TNI/Polri</option>
+                                        <option value="Karyawan Swasta">Karyawan Swasta</option>
+                                        <option value="Wiraswasta/Pengusaha">Wiraswasta/Pengusaha</option>
+                                        <option value="Pensiunan">Pensiunan</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOLOM KANAN -->
+                    <div class="space-y-5">
+                        <!-- Gerejawi & Kontak -->
+                        <div>
+                            <h4 class="font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3 flex items-center"><i class="fa-solid fa-map-location-dot mr-2 text-indigo-500"></i>Lokasi & Sektor Pelayanan</h4>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Sektor / Wilayah *</label>
+                                    <select id="sektor" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-indigo-50 font-semibold text-indigo-800">
+                                        <option value="Sektor 1">Sektor 1</option>
+                                        <option value="Sektor 2">Sektor 2</option>
+                                        <option value="Sektor 3">Sektor 3</option>
+                                        <option value="Belum Ditentukan">Belum Ditentukan</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">No. Telepon / HP</label>
+                                    <input type="number" id="noTelepon" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="08xxxxxxxxxx">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Alamat Rumah *</label>
+                                <textarea id="alamat" rows="2" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Alamat lengkap tempat tinggal"></textarea>
+                                <p id="alamatNote" class="text-[10px] text-amber-600 mt-1 hidden"><i class="fa-solid fa-lock mr-1"></i>Sektor & Alamat otomatis mengikuti Anggota Utama.</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-semibold text-slate-700 border-b border-slate-200 pb-2 mb-3 flex items-center"><i class="fa-solid fa-cross mr-2 text-indigo-500"></i>Status Gerejawi</h4>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Status Keanggotaan *</label>
+                                    <select id="statusJemaat" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium">
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Pindah">Pindah (Atestasi Keluar)</option>
+                                        <option value="Meninggal">Meninggal Dunia</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-slate-700 mb-1">Tanggal Bergabung *</label>
+                                    <input type="date" id="tanggalBergabung" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block font-medium text-slate-700 mb-1">Jalur Masuk / Asal *</label>
+                                <select id="jalurMasuk" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                    <option value="Lahir di Gereja">Lahir di Gereja Ini</option>
+                                    <option value="Pindahan">Pindahan (Atestasi Masuk)</option>
+                                    <option value="Baru Percaya">Baru Percaya</option>
+                                </select>
+                            </div>
+                            <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block font-medium text-slate-700 mb-1">Status Baptis</label>
+                                        <select id="jenisBaptis" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <option value="Belum Baptis">Belum Baptis</option>
+                                            <option value="Baptis Selam">Baptis Selam (Air)</option>
+                                            <option value="Baptis Percik">Baptis Percik</option>
+                                            <option value="Baptis Anak">Baptis Anak</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-medium text-slate-700 mb-1">Status Sidi</label>
+                                        <select id="statusSidi" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <option value="Belum Sidi">Belum Sidi</option>
+                                            <option value="Sudah Sidi">Sudah Sidi (Peneguhan)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-white border-t border-slate-100 py-3">
+                    <button type="button" onclick="closeModalJemaat()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow-sm flex items-center"><i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CETAK KARTU KELUARGA DENGAN TIMESTAMP -->
+    <div id="modalCetakKK" class="fixed inset-0 z-[55] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm hidden overflow-y-auto py-10">
+        <div class="bg-white rounded-xl w-full max-w-5xl mx-4 shadow-2xl relative my-auto flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center no-print">
+                <h3 class="text-sm font-bold text-slate-800"><i class="fa-solid fa-users-viewfinder mr-2 text-indigo-600"></i>Pratinjau Kartu Keluarga</h3>
+                <div class="flex space-x-2">
+                    <button onclick="window.print()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded transition flex items-center"><i class="fa-solid fa-print mr-1"></i> Cetak Dokumen</button>
+                    <button onclick="closeModalKK()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            
+            <div id="printArea" class="p-8 bg-white overflow-y-auto text-black font-serif">
+                <div class="text-center mb-8 border-b-4 border-double border-slate-800 pb-4">
+                    <h1 class="text-3xl font-bold uppercase tracking-widest">Kartu Keluarga Jemaat</h1>
+                    <p class="text-sm mt-1 font-sans">GEREJA SMART-REL &bull; DATABASE JEMAAT TERPUSAT</p>
+                </div>
+
+                <div class="flex justify-between mb-6 text-sm font-sans">
+                    <table class="w-1/2">
+                        <tr><td class="py-1 font-semibold w-40">Nama Anggota Utama</td><td class="py-1 px-2">:</td><td id="kkNama" class="py-1 font-bold uppercase"></td></tr>
+                        <tr><td class="py-1 font-semibold">Alamat Lengkap</td><td class="py-1 px-2">:</td><td id="kkAlamat" class="py-1 uppercase"></td></tr>
+                        <tr><td class="py-1 font-semibold">Sektor / Wilayah</td><td class="py-1 px-2">:</td><td id="kkSektor" class="py-1 uppercase font-bold text-indigo-800"></td></tr>
+                    </table>
+                    <table class="w-1/3">
+                        <tr><td class="py-1 font-semibold w-28">No. KK Sistem</td><td class="py-1 px-2">:</td><td id="kkSistemId" class="py-1 font-mono"></td></tr>
+                        <tr><td class="py-1 font-semibold">Waktu Cetak (Timestamp)</td><td class="py-1 px-2">:</td><td id="kkTimestamp" class="py-1 font-mono text-[11px]"></td></tr>
+                        <tr><td class="py-1 font-semibold">Status Dokumen</td><td class="py-1 px-2">:</td><td class="py-1 font-bold text-emerald-600">AKTIF / RESMI</td></tr>
+                    </table>
+                </div>
+
+                <table class="w-full text-[11px] font-sans border-collapse border border-slate-800 text-center mb-8">
+                    <thead class="font-bold bg-slate-100">
+                        <tr>
+                            <th class="border border-slate-800 py-2 px-1 w-8">No</th>
+                            <th class="border border-slate-800 py-2 px-2 text-left">Nama Lengkap</th>
+                            <th class="border border-slate-800 py-2 px-2">NIJ (ID Jemaat)</th>
+                            <th class="border border-slate-800 py-2 px-2">NIK KTP</th>
+                            <th class="border border-slate-800 py-2 px-2">L/P</th>
+                            <th class="border border-slate-800 py-2 px-2">Tanggal Lahir</th>
+                            <th class="border border-slate-800 py-2 px-2">Hubungan</th>
+                            <th class="border border-slate-800 py-2 px-2">Pendidikan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kkTableBody"></tbody>
+                </table>
+                <div class="text-[10px] font-sans text-right text-slate-500 mt-10">
+                    * Dokumen resmi ini digenerate secara otomatis oleh Sistem Database Smart-Rel.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: IMPOR EXCEL BERFUNGSI PENUH -->
+    <div id="modalImport" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 overflow-hidden shadow-xl border border-slate-200">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-800">Impor Data Jemaat (Excel)</h3>
+                <button onclick="closeModalImport()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4 text-xs">
+                <p class="text-slate-600">Pilih berkas format .XLSX untuk memasukkan data jemaat baru secara massal ke dalam sistem.</p>
+                
+                <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-500 transition cursor-pointer bg-slate-50" onclick="document.getElementById('fileImportCSV').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500 mb-2"></i>
+                    <p class="font-medium text-slate-700">Klik untuk memilih berkas Excel (.xlsx)</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Maks. Ukuran 5MB</p>
+                    <input type="file" id="fileImportCSV" accept=".xlsx,.xls" class="hidden" onchange="handleFileSelected(event)">
+                    <p id="fileNameSelected" class="mt-2 font-semibold text-indigo-600 hidden"></p>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <button type="button" onclick="downloadTemplateCSV()" class="text-indigo-600 hover:text-indigo-800 font-medium underline flex items-center space-x-1">
+                        <i class="fa-solid fa-download"></i><span>Unduh Contoh Template Excel</span>
+                    </button>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModalImport()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition">Batal</button>
+                    <button type="button" onclick="processImportCSV()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition">Proses Impor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERT -->
+    <div id="modalAlert" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-xl border border-slate-200 p-6 text-center space-y-4">
+            <div id="alertIcon" class="w-12 h-12 rounded-full mx-auto text-xl flex items-center justify-center"></div>
+            <h3 id="alertTitle" class="text-sm font-bold text-slate-900"></h3>
+            <p id="alertMessage" class="text-xs text-slate-600"></p>
+            <button onclick="closeAlert()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-medium transition">Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        // DATA DUMMY DENGAN ATRIBUT LENGKAP
+        let dataJemaat = [
+            {
+                id: "1", kepalaKeluargaId: null, 
+                nij: "JMT-2015-0001", nomorInduk: "3271011205800001", nama_lengkap: "Budi Santoso", 
+                status_keluarga: "Anggota Utama", jenis_kelamin: "L", status_pernikahan: "Menikah", 
+                pendidikan: "Sarjana (S1)", pekerjaan: "Karyawan Swasta", sektor: "Sektor 1",
+                tanggal_lahir: "1980-05-12", alamat: "Jl. Mawar Indah No. 12, Bogor", no_telepon: "081234567890", 
+                status_jemaat: "Aktif", jalur_masuk: "Pindahan", tanggal_bergabung: "2015-01-10", 
+                jenis_baptis: "Baptis Selam", status_sidi: "Sudah Sidi"
+            },
+            {
+                id: "2", kepalaKeluargaId: "1", 
+                nij: "JMT-2015-0002", nomorInduk: "3271014508820002", nama_lengkap: "Siti Rahma", 
+                status_keluarga: "Istri", jenis_kelamin: "P", status_pernikahan: "Menikah", 
+                pendidikan: "Diploma (D1-D4)", pekerjaan: "Mengurus Rumah Tangga", sektor: "Sektor 1",
+                tanggal_lahir: "1982-08-20", alamat: "Jl. Mawar Indah No. 12, Bogor", no_telepon: "081234567891", 
+                status_jemaat: "Aktif", jalur_masuk: "Pindahan", tanggal_bergabung: "2015-01-10", 
+                jenis_baptis: "Baptis Percik", status_sidi: "Sudah Sidi"
+            },
+            {
+                id: "3", kepalaKeluargaId: "1", 
+                nij: "JMT-2021-0010", nomorInduk: "3271016003050003", nama_lengkap: "Andi Santoso", 
+                status_keluarga: "Anak", jenis_kelamin: "L", status_pernikahan: "Belum Menikah", 
+                pendidikan: "SMA/Sederajat", pekerjaan: "Pelajar/Mahasiswa", sektor: "Sektor 1",
+                tanggal_lahir: "2005-03-10", alamat: "Jl. Mawar Indah No. 12, Bogor", no_telepon: "", 
+                status_jemaat: "Aktif", jalur_masuk: "Lahir di Gereja", tanggal_bergabung: "2021-05-15", 
+                jenis_baptis: "Baptis Anak", status_sidi: "Belum Sidi"
+            }
+        ];
+
+        let selectedImportFile = null;
+
+        window.onload = function() {
+            renderDashboard();
+            renderTableJemaat();
+        };
+
+        function switchTab(tab) {
+            if(tab === 'dashboard') {
+                document.getElementById('section-dashboard').classList.remove('hidden');
+                document.getElementById('section-jemaat').classList.add('hidden');
+                document.getElementById('tab-dashboard').classList.add('border-indigo-600', 'text-indigo-600');
+                document.getElementById('tab-dashboard').classList.remove('border-transparent', 'text-slate-500');
+                document.getElementById('tab-jemaat').classList.remove('border-indigo-600', 'text-indigo-600');
+                document.getElementById('tab-jemaat').classList.add('border-transparent', 'text-slate-500');
+                renderDashboard();
+            } else {
+                document.getElementById('section-dashboard').classList.add('hidden');
+                document.getElementById('section-jemaat').classList.remove('hidden');
+                document.getElementById('tab-jemaat').classList.add('border-indigo-600', 'text-indigo-600');
+                document.getElementById('tab-jemaat').classList.remove('border-transparent', 'text-slate-500');
+                document.getElementById('tab-dashboard').classList.remove('border-indigo-600', 'text-indigo-600');
+                document.getElementById('tab-dashboard').classList.add('border-transparent', 'text-slate-500');
+                renderTableJemaat();
+            }
+        }
+
+        // ================= DASHBOARD =================
+        function renderDashboard() {
+            let aktif = dataJemaat.filter(j => j.status_jemaat === "Aktif");
+            let nonAktif = dataJemaat.filter(j => j.status_jemaat !== "Aktif");
+            
+            let sdhBaptisAir = aktif.filter(j => j.jenis_baptis === "Baptis Selam" || j.jenis_baptis === "Baptis Percik").length;
+            
+            document.getElementById('statTotalJemaat').innerText = aktif.length;
+            document.getElementById('statBaptis').innerText = sdhBaptisAir;
+            document.getElementById('statNonAktif').innerText = nonAktif.length;
+
+            const today = new Date();
+            const currentMonth = today.getMonth() + 1;
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+            
+            document.getElementById('currentMonthTitle').innerText = `Ulang Tahun Bulan ${monthNames[currentMonth - 1]}`;
+
+            let ultahBulanIni = aktif.filter(j => {
+                if(!j.tanggal_lahir) return false;
+                return parseInt(j.tanggal_lahir.split('-')[1]) === currentMonth;
+            }).sort((a,b) => parseInt(a.tanggal_lahir.split('-')[2]) - parseInt(b.tanggal_lahir.split('-')[2]));
+
+            document.getElementById('countUltahBulanIni').innerText = `${ultahBulanIni.length} Orang`;
+            
+            let tbodyUltah = document.getElementById('tableUltahBulanIniBody');
+            tbodyUltah.innerHTML = "";
+            if(ultahBulanIni.length === 0) {
+                tbodyUltah.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Tidak ada jemaat aktif yang ultah bulan ini.</td></tr>`;
+            } else {
+                ultahBulanIni.forEach(j => {
+                    const parts = j.tanggal_lahir.split('-');
+                    const usia = today.getFullYear() - parseInt(parts[0]);
+                    tbodyUltah.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-50">
+                            <td class="py-2.5 px-3">
+                                <div class="font-medium text-slate-800">${j.nama_lengkap}</div>
+                                <div class="text-[9px] text-slate-400 font-mono">${j.nij}</div>
+                            </td>
+                            <td class="py-2.5 px-3 text-slate-600">${parts[2]} ${monthNames[parseInt(parts[1])-1]}</td>
+                            <td class="py-2.5 px-3 text-slate-600">${usia} Thn</td>
+                            <td class="py-2.5 px-3 text-slate-600"><span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[10px]">${j.sektor}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            let container = document.getElementById('countdownWidget');
+            container.innerHTML = "";
+            let list = aktif.map(j => {
+                if(!j.tanggal_lahir) return null;
+                const parts = j.tanggal_lahir.split('-');
+                let nextBday = new Date(today.getFullYear(), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                if(nextBday < new Date(today.setHours(0,0,0,0))) { nextBday.setFullYear(today.getFullYear() + 1); }
+                return { ...j, diffDays: Math.ceil((nextBday - new Date()) / (1000 * 60 * 60 * 24)) };
+            }).filter(Boolean).sort((a,b) => a.diffDays - b.diffDays).slice(0, 3);
+
+            if(list.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400">Belum ada data.</p>`; return;
+            }
+
+            list.forEach(item => {
+                let badge = item.diffDays === 0 ? "Hari Ini! 🎉" : `${item.diffDays} Hari Lagi`;
+                let bClass = item.diffDays === 0 ? "bg-pink-100 text-pink-700 animate-pulse border-pink-200" : "bg-amber-50 text-amber-600";
+                const parts = item.tanggal_lahir.split('-');
+                const tgl = `${parts[2]} ${monthNames[parseInt(parts[1])-1]}`;
+                container.innerHTML += `
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <p class="font-semibold text-slate-800">${item.nama_lengkap}</p>
+                            <p class="text-[11px] text-slate-500">${tgl}</p>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded border border-transparent ${bClass}">${badge}</span>
+                    </div>
+                `;
+            });
+
+            // ANALYTICS RENDER
+            if(document.getElementById('chartGender')) {
+                let pria = aktif.filter(j => j.jenis_kelamin === "L").length;
+                let wanita = aktif.filter(j => j.jenis_kelamin === "P").length;
+                let totalGender = pria + wanita;
+                let pctPria = totalGender === 0 ? 0 : Math.round((pria/totalGender)*100);
+                let pctWanita = totalGender === 0 ? 0 : Math.round((wanita/totalGender)*100);
+                
+                document.getElementById('chartGender').innerHTML = `
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-medium"><span class="text-blue-600">Laki-Laki</span><span>${pria} Jiwa (${pctPria}%)</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full transition-all duration-1000" style="width: ${pctPria}%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1 font-medium"><span class="text-pink-600">Perempuan</span><span>${wanita} Jiwa (${pctWanita}%)</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-3"><div class="bg-pink-500 h-3 rounded-full transition-all duration-1000" style="width: ${pctWanita}%"></div></div>
+                    </div>
+                `;
+
+                let anak=0, pemuda=0, dewasa=0, lansia=0;
+                aktif.forEach(j => {
+                    if(j.tanggal_lahir) {
+                        let y = parseInt(j.tanggal_lahir.split('-')[0]);
+                        let age = today.getFullYear() - y;
+                        if(age <= 14) anak++;
+                        else if(age <= 25) pemuda++;
+                        else if(age <= 55) dewasa++;
+                        else lansia++;
+                    }
+                });
+                
+                const renderBar = (label, val, total, color) => {
+                    let pct = total === 0 ? 0 : Math.round((val/total)*100);
+                    return '<div>' +
+                        '<div class="flex justify-between text-xs mb-1 font-medium text-slate-600"><span>' + label + '</span><span>' + val + ' Jiwa (' + pct + '%)</span></div>' +
+                        '<div class="w-full bg-slate-100 rounded-full h-2"><div class="' + color + ' h-2 rounded-full transition-all duration-1000" style="width: ' + pct + '%"></div></div>' +
+                    '</div>';
+                };
+                
+                let totalUsia = aktif.length;
+                document.getElementById('chartUsia').innerHTML = 
+                    renderBar('Sekolah Minggu (0-14 Thn)', anak, totalUsia, 'bg-amber-400') +
+                    renderBar('Pemuda / Remaja (15-25 Thn)', pemuda, totalUsia, 'bg-emerald-400') +
+                    renderBar('Dewasa (26-55 Thn)', dewasa, totalUsia, 'bg-indigo-400') +
+                    renderBar('Lansia / Warga Emas (>55 Thn)', lansia, totalUsia, 'bg-purple-400');
+            }
+        }
+
+        // ================= TABLE JEMAAT =================
+        function renderTableJemaat() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterSektor = document.getElementById('filterSektor').value;
+            const tbody = document.getElementById('tableJemaatBody');
+            tbody.innerHTML = "";
+
+            let filtered = dataJemaat.filter(j => {
+                let match = j.nama_lengkap.toLowerCase().includes(keyword) || j.nomorInduk.toLowerCase().includes(keyword) || j.nij.toLowerCase().includes(keyword);
+                let stat = filterStatus === "Semua" ? true : (filterStatus === "Aktif" ? j.status_jemaat === "Aktif" : j.status_jemaat === filterStatus);
+                let sek = filterSektor === "Semua" ? true : j.sektor === filterSektor;
+                return match && stat && sek;
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada data jemaat.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(j => {
+                let bKeluarga = j.status_keluarga === "Anggota Utama" ? "bg-indigo-100 text-indigo-700 font-semibold" : "bg-slate-100 text-slate-600";
+                let iconBaptis = j.jenis_baptis !== "Belum Baptis" ? `<i class="fa-solid fa-droplet text-blue-500" title="${j.jenis_baptis}"></i>` : `<i class="fa-solid fa-droplet text-slate-300"></i>`;
+                let iconSidi = j.status_sidi === "Sudah Sidi" ? `<i class="fa-solid fa-dove text-emerald-500" title="Sudah Sidi"></i>` : `<i class="fa-solid fa-dove text-slate-300"></i>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100 ${j.status_jemaat !== 'Aktif' ? 'opacity-60' : ''}">
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-slate-900">${j.nama_lengkap} ${j.status_jemaat !== 'Aktif' ? `<span class="text-rose-500 text-[10px]">(${j.status_jemaat})</span>`:''}</div>
+                            <div class="text-[10px] font-mono mt-0.5"><span class="text-indigo-600 font-bold">${j.nij}</span> <span class="text-slate-400">| NIK: ${j.nomorInduk}</span></div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded text-[10px] ${bKeluarga}">${j.status_keluarga}</span>
+                            <div class="text-[10px] text-slate-500 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${j.sektor}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="text-xs text-slate-700">${j.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} &bull; ${j.tanggal_lahir}</div>
+                            <div class="text-[10px] text-slate-500 mt-1">${j.pendidikan} &bull; ${j.pekerjaan}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center space-x-2 text-xs">${iconBaptis} <span class="text-[10px]">${j.jenis_baptis}</span></div>
+                            <div class="flex items-center space-x-2 text-xs mt-1">${iconSidi} <span class="text-[10px]">${j.status_sidi}</span></div>
+                        </td>
+                        <td class="py-3 px-4 text-center space-x-1">
+                            ${(j.status_keluarga === "Anggota Utama") ? `
+                                <button onclick="generateKK('${j.id}')" title="Cetak Kartu Keluarga" class="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition"><i class="fa-solid fa-id-card"></i></button>
+                            ` : ''}
+                            ${(j.status_keluarga === "Anggota Utama" && j.status_jemaat === "Aktif") ? `
+                                <button onclick="openModalTambahAnggota('${j.id}')" title="Tambah Anak/Istri ke KK" class="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded transition"><i class="fa-solid fa-user-plus"></i></button>
+                            ` : ''}
+                            ${(j.status_keluarga === "Anak" && j.status_jemaat === "Aktif") ? `
+                                <button onclick="pecahKk('${j.id}')" title="Pecah KK (Menjadi Single/Mandiri)" class="p-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded transition"><i class="fa-solid fa-house-chimney-user"></i></button>
+                            ` : ''}
+                            <button onclick="editJemaat('${j.id}')" title="Edit Data" class="p-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded transition"><i class="fa-solid fa-pen"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ================= CETAK KARTU KELUARGA DENGAN TIMESTAMP =================
+        function generateKK(kkId) {
+            let kkRoot = dataJemaat.find(j => j.id === kkId);
+            if(!kkRoot) return;
+
+            let familyMembers = dataJemaat.filter(j => j.id === kkId || j.kepalaKeluargaId === kkId);
+            const order = { "Anggota Utama": 1, "Suami": 2, "Istri": 3, "Anak": 4 };
+            familyMembers.sort((a, b) => (order[a.status_keluarga] || 99) - (order[b.status_keluarga] || 99));
+
+            document.getElementById('kkNama').innerText = kkRoot.nama_lengkap;
+            document.getElementById('kkAlamat').innerText = kkRoot.alamat;
+            document.getElementById('kkSektor').innerText = kkRoot.sektor;
+            document.getElementById('kkSistemId').innerText = `KK-${kkRoot.id.padStart(6, '0')}`;
+            
+            // TIMESTAMP LENGKAP
+            let now = new Date();
+            let timestamp = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ' WIB';
+            document.getElementById('kkTimestamp').innerText = timestamp;
+
+            let tbody = document.getElementById('kkTableBody');
+            tbody.innerHTML = "";
+            familyMembers.forEach((member, index) => {
+                let row = `
+                    <tr class="border-b border-slate-300">
+                        <td class="border border-slate-800 py-2 px-1">${index + 1}</td>
+                        <td class="border border-slate-800 py-2 px-2 text-left font-semibold uppercase">${member.nama_lengkap}</td>
+                        <td class="border border-slate-800 py-2 px-2 font-mono tracking-wider font-bold">${member.nij}</td>
+                        <td class="border border-slate-800 py-2 px-2 font-mono tracking-wider">${member.nomorInduk}</td>
+                        <td class="border border-slate-800 py-2 px-2">${member.jenis_kelamin === 'L' ? 'L' : 'P'}</td>
+                        <td class="border border-slate-800 py-2 px-2">${member.tanggal_lahir}</td>
+                        <td class="border border-slate-800 py-2 px-2 uppercase">${member.status_keluarga}</td>
+                        <td class="border border-slate-800 py-2 px-2 uppercase text-[10px]">${member.pendidikan}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('modalCetakKK').classList.remove('hidden');
+        }
+        function closeModalKK() { document.getElementById('modalCetakKK').classList.add('hidden'); }
+
+        // ================= MODAL & VALIDASI LOGIC =================
+        function openModalTambahJemaat() {
+            document.getElementById('modalJemaatTitle').innerText = "Tambah Data Jemaat Baru";
+            document.getElementById('formJemaat').reset();
+            document.getElementById('editIndex').value = "";
+            document.getElementById('kepalaKeluargaId').value = "";
+            
+            let statusSelect = document.getElementById('statusKeluarga');
+            statusSelect.innerHTML = `<option value="Anggota Utama">Anggota Utama</option>`;
+            statusSelect.disabled = true; 
+            
+            document.getElementById('sektor').disabled = false;
+            document.getElementById('alamat').readOnly = false;
+            document.getElementById('alamatNote').classList.add('hidden');
+
+            document.getElementById('modalJemaat').classList.remove('hidden');
+        }
+
+        function openModalTambahAnggota(kkId) {
+            let kkData = dataJemaat.find(j => j.id === kkId);
+            if(!kkData) return;
+
+            document.getElementById('modalJemaatTitle').innerText = `Tambah Anggota Keluarga`;
+            document.getElementById('formJemaat').reset();
+            document.getElementById('editIndex').value = "";
+            document.getElementById('kepalaKeluargaId').value = kkId;
+            document.getElementById('nomorIndukJemaat').value = "";
+            
+            let statusSelect = document.getElementById('statusKeluarga');
+            statusSelect.disabled = false;
+            
+            let optionsHTML = `<option value="Anak">Anak</option>`;
+            if(kkData.jenis_kelamin === "L") {
+                let hasIstri = dataJemaat.some(j => (j.kepalaKeluargaId === kkId || j.id === kkId) && j.status_keluarga === "Istri");
+                if(!hasIstri) { optionsHTML = `<option value="Istri">Istri</option>` + optionsHTML; }
+            } else if(kkData.jenis_kelamin === "P") {
+                let hasSuami = dataJemaat.some(j => (j.kepalaKeluargaId === kkId || j.id === kkId) && j.status_keluarga === "Suami");
+                if(!hasSuami) { optionsHTML = `<option value="Suami">Suami</option>` + optionsHTML; }
+            }
+            
+            statusSelect.innerHTML = optionsHTML;
+            handleGenderChange(); 
+            
+            document.getElementById('sektor').value = kkData.sektor;
+            document.getElementById('sektor').disabled = true;
+            document.getElementById('alamat').value = kkData.alamat;
+            document.getElementById('alamat').readOnly = true;
+            document.getElementById('alamatNote').classList.remove('hidden');
+
+            document.getElementById('modalJemaat').classList.remove('hidden');
+        }
+
+        function handleGenderChange() {
+            let statusKel = document.getElementById('statusKeluarga').value;
+            let jenisKelamin = document.getElementById('jenisKelamin');
+            if(statusKel === "Istri") {
+                jenisKelamin.value = "P"; jenisKelamin.disabled = true;
+            } else if (statusKel === "Suami") {
+                jenisKelamin.value = "L"; jenisKelamin.disabled = true;
+            } else {
+                jenisKelamin.disabled = false;
+            }
+        }
+        document.getElementById('statusKeluarga').addEventListener('change', handleGenderChange);
+
+        function saveJemaat(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editIndex').value;
+            const kkId = document.getElementById('kepalaKeluargaId').value;
+            
+            const elSektor = document.getElementById('sektor');
+            const sektorVal = elSektor.value;
+            const tglGabung = document.getElementById('tanggalBergabung').value;
+            const finalNIJ = document.getElementById('nomorIndukJemaat').value.trim();
+            
+            const formData = {
+                nij: finalNIJ,
+                nomorInduk: document.getElementById('nomorInduk').value.trim(),
+                nama_lengkap: document.getElementById('namaLengkap').value.trim(),
+                status_keluarga: document.getElementById('statusKeluarga').value,
+                jenis_kelamin: document.getElementById('jenisKelamin').value,
+                status_pernikahan: document.getElementById('statusPernikahan').value,
+                pendidikan: document.getElementById('pendidikan').value,
+                pekerjaan: document.getElementById('pekerjaan').value,
+                sektor: sektorVal,
+                tanggal_lahir: document.getElementById('tanggalLahir').value,
+                alamat: document.getElementById('alamat').value,
+                no_telepon: document.getElementById('noTelepon').value,
+                status_jemaat: document.getElementById('statusJemaat').value,
+                jalur_masuk: document.getElementById('jalurMasuk').value,
+                tanggal_bergabung: tglGabung,
+                jenis_baptis: document.getElementById('jenisBaptis').value,
+                status_sidi: document.getElementById('statusSidi').value
+            };
+
+            if (formData.nomorInduk.length !== 16) {
+                showAlert("Error DBA: Format Data", "NIK (Nomor Induk KTP) wajib 16 digit.", "error"); return;
+            }
+
+            let isNijDuplicate = dataJemaat.some(j => j.nij === finalNIJ && j.id !== editId);
+            if (isNijDuplicate) {
+                showAlert("Error DBA: Duplikat Data", `Nomor Induk Jemaat (NIJ) ${finalNIJ} sudah dipakai.`, "error"); return;
+            }
+
+            let isNikDuplicate = dataJemaat.some(j => j.nomorInduk === formData.nomorInduk && j.id !== editId);
+            if (isNikDuplicate) {
+                showAlert("Error DBA: Duplikat Data", `NIK ${formData.nomorInduk} sudah terdaftar.`, "error"); return;
+            }
+
+            if(editId) {
+                let idx = dataJemaat.findIndex(j => j.id === editId);
+                dataJemaat[idx] = { ...dataJemaat[idx], ...formData };
+                showAlert("Berhasil", "Data jemaat berhasil diperbarui.", "success");
+            } else {
+                dataJemaat.push({ id: Date.now().toString(), kepalaKeluargaId: kkId || null, ...formData });
+                showAlert("Berhasil", `Data jemaat tersimpan dengan NIJ: ${finalNIJ}`, "success");
+            }
+
+            closeModalJemaat(); renderTableJemaat(); renderDashboard();
+        }
+
+        function editJemaat(id) {
+            let j = dataJemaat.find(item => item.id === id);
+            if(!j) return;
+
+            document.getElementById('modalJemaatTitle').innerText = "Edit Data Jemaat";
+            document.getElementById('editIndex').value = j.id;
+            document.getElementById('kepalaKeluargaId').value = j.kepalaKeluargaId || "";
+            
+            document.getElementById('nomorIndukJemaat').value = j.nij;
+            document.getElementById('nomorInduk').value = j.nomorInduk;
+            document.getElementById('namaLengkap').value = j.nama_lengkap;
+            
+            let statusSelect = document.getElementById('statusKeluarga');
+            statusSelect.innerHTML = `<option value="Anggota Utama">Anggota Utama</option>
+                                      <option value="Suami">Suami</option>
+                                      <option value="Istri">Istri</option>
+                                      <option value="Anak">Anak</option>`;
+            statusSelect.value = j.status_keluarga;
+            statusSelect.disabled = !j.kepalaKeluargaId;
+
+            document.getElementById('jenisKelamin').value = j.jenis_kelamin;
+            document.getElementById('jenisKelamin').disabled = (j.status_keluarga === 'Istri' || j.status_keluarga === 'Suami');
+            document.getElementById('statusPernikahan').value = j.status_pernikahan || "Belum Menikah";
+            document.getElementById('pendidikan').value = j.pendidikan || "Belum/Tidak Sekolah";
+            document.getElementById('pekerjaan').value = j.pekerjaan || "Lainnya";
+            document.getElementById('sektor').value = j.sektor || "Belum Ditentukan";
+            document.getElementById('tanggalLahir').value = j.tanggal_lahir;
+            document.getElementById('alamat').value = j.alamat;
+            document.getElementById('noTelepon').value = j.no_telepon || "";
+            document.getElementById('statusJemaat').value = j.status_jemaat;
+            document.getElementById('jalurMasuk').value = j.jalur_masuk;
+            document.getElementById('tanggalBergabung').value = j.tanggal_bergabung;
+            document.getElementById('jenisBaptis').value = j.jenis_baptis || "Belum Baptis";
+            document.getElementById('statusSidi').value = j.status_sidi || "Belum Sidi";
+            
+            if(j.kepalaKeluargaId) {
+                document.getElementById('sektor').disabled = true;
+                document.getElementById('alamat').readOnly = true;
+                document.getElementById('alamatNote').classList.remove('hidden');
+            } else {
+                document.getElementById('sektor').disabled = false;
+                document.getElementById('alamat').readOnly = false;
+                document.getElementById('alamatNote').classList.add('hidden');
+            }
+            document.getElementById('modalJemaat').classList.remove('hidden');
+        }
+
+        function pecahKk(id) {
+            let j = dataJemaat.find(item => item.id === id);
+            if(!j) return;
+            if(confirm(`Yakin memproses Pecah KK untuk ${j.nama_lengkap}? (Menjadi KK mandiri)`)) {
+                j.kepalaKeluargaId = null; j.status_keluarga = "Anggota Utama";
+                showAlert("Pecah KK Berhasil", `${j.nama_lengkap} kini membentuk Kartu Keluarga mandiri.`, "success");
+                renderTableJemaat();
+            }
+        }
+
+        function closeModalJemaat() { document.getElementById('modalJemaat').classList.add('hidden'); }
+
+        // ================= FULLY FUNCTIONAL EXPORT EXCEL (XLSX) =================
+        function exportData() {
+            if(dataJemaat.length === 0) {
+                showAlert("Ekspor Gagal", "Tidak ada data jemaat untuk diekspor.", "error");
+                return;
+            }
+            let headers = ["id", "kepalaKeluargaId", "nij", "nomorInduk", "nama_lengkap", "status_keluarga", "jenis_kelamin", "status_pernikahan", "pendidikan", "pekerjaan", "sektor", "tanggal_lahir", "alamat", "no_telepon", "status_jemaat", "jalur_masuk", "tanggal_bergabung", "jenis_baptis", "status_sidi"];
+
+            let dataForSheet = dataJemaat.map(j => {
+                let row = {};
+                headers.forEach(h => {
+                    row[h] = j[h] !== undefined && j[h] !== null ? j[h] : "";
+                });
+                return row;
+            });
+
+            let worksheet = XLSX.utils.json_to_sheet(dataForSheet, { header: headers });
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data Jemaat");
+            XLSX.writeFile(workbook, `database_jemaat_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showAlert("Berhasil", "Data jemaat berhasil diekspor ke berkas Excel.", "success");
+        }
+
+        // ================= FULLY FUNCTIONAL IMPORT CSV =================
+        function openModalImport() {
+            document.getElementById('fileImportCSV').value = "";
+            document.getElementById('fileNameSelected').classList.add('hidden');
+            selectedImportFile = null;
+            document.getElementById('modalImport').classList.remove('hidden');
+        }
+
+        function closeModalImport() {
+            document.getElementById('modalImport').classList.add('hidden');
+        }
+
+        function handleFileSelected(event) {
+            const file = event.target.files[0];
+            if(file) {
+                selectedImportFile = file;
+                const el = document.getElementById('fileNameSelected');
+                el.innerText = `Berkas dipilih: ${file.name}`;
+                el.classList.remove('hidden');
+            }
+        }
+
+        function downloadTemplateCSV() {
+            let headers = ["id", "kepalaKeluargaId", "nij", "nomorInduk", "nama_lengkap", "status_keluarga", "jenis_kelamin", "status_pernikahan", "pendidikan", "pekerjaan", "sektor", "tanggal_lahir", "alamat", "no_telepon", "status_jemaat", "jalur_masuk", "tanggal_bergabung", "jenis_baptis", "status_sidi"];
+            let sampleRow = { id: "101", kepalaKeluargaId: "", nij: "JMT-2026-9999", nomorInduk: "3271011205900001", nama_lengkap: "Contoh Jemaat", status_keluarga: "Anggota Utama", jenis_kelamin: "L", status_pernikahan: "Menikah", pendidikan: "Sarjana (S1)", pekerjaan: "Karyawan Swasta", sektor: "Sektor 1", tanggal_lahir: "1990-05-12", alamat: "Jl. Contoh No. 1", no_telepon: "08123456789", status_jemaat: "Aktif", jalur_masuk: "Pindahan", tanggal_bergabung: "2026-01-01", jenis_baptis: "Baptis Selam", status_sidi: "Sudah Sidi" };
+
+            let worksheet = XLSX.utils.json_to_sheet([sampleRow], { header: headers });
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+            XLSX.writeFile(workbook, "template_impor_jemaat.xlsx");
+        }
+
+        function processImportCSV() {
+            if(!selectedImportFile) {
+                showAlert("Perhatian", "Silakan pilih berkas Excel terlebih dahulu.", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, { type: 'array' });
+                    let firstSheetName = workbook.SheetNames[0];
+                    let worksheet = workbook.Sheets[firstSheetName];
+
+                    // defval: "" memastikan sel kosong tetap terbaca sebagai string kosong
+                    // raw: false mengonversi tanggal/angka menjadi teks sesuai tampilan sel
+                    let rows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+
+                    if(rows.length === 0) {
+                        showAlert("Error Impor", "Format Excel kosong atau tidak valid.", "error");
+                        return;
+                    }
+
+                    let importedCount = 0;
+
+                    rows.forEach((row, i) => {
+                        let obj = {};
+                        Object.keys(row).forEach(h => {
+                            let val = row[h];
+                            obj[h.trim()] = val !== undefined && val !== null ? String(val).trim() : "";
+                        });
+
+                        if(obj.nama_lengkap && obj.nomorInduk) {
+                            // Cek duplikat NIK
+                            let exists = dataJemaat.some(j => j.nomorInduk === obj.nomorInduk);
+                            if(!exists) {
+                                if(!obj.id) obj.id = String(Date.now() + i);
+                                dataJemaat.push(obj);
+                                importedCount++;
+                            }
+                        }
+                    });
+
+                    closeModalImport();
+                    renderTableJemaat();
+                    renderDashboard();
+                    showAlert("Impor Berhasil", `Berhasil mengimpor ${importedCount} data jemaat baru ke dalam sistem.`, "success");
+                } catch(err) {
+                    showAlert("Error", "Gagal memproses berkas Excel. Pastikan struktur kolom sesuai template.", "error");
+                }
+            };
+            reader.readAsArrayBuffer(selectedImportFile);
+        }
+
+        // ================= ALERT MODAL =================
+        function showAlert(title, message, type = "success") {
+            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMessage').innerText = message;
+            const iconEl = document.getElementById('alertIcon');
+            if(type === "error") {
+                iconEl.className = "w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+            } else {
+                iconEl.className = "w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl";
+                iconEl.innerHTML = `<i class="fa-solid fa-check"></i>`;
+            }
+            document.getElementById('modalAlert').classList.remove('hidden');
+        }
+        function closeAlert() { document.getElementById('modalAlert').classList.add('hidden'); }
+    </script>
+</body>
+</html>
