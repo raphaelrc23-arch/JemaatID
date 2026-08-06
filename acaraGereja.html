@@ -14,7 +14,7 @@
     <!-- FontAwesome untuk Icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- SheetJS untuk Export/Import Excel (2 Sheet) -->
+    <!-- SheetJS untuk Export/Import Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
     <!-- jsPDF & AutoTable untuk Export PDF -->
@@ -38,7 +38,6 @@
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col">
 
-    <!-- Navbar -->
     <nav class="bg-blue-700 text-white shadow-lg z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col sm:flex-row justify-between sm:h-16 items-center py-3 sm:py-0 gap-3">
@@ -55,25 +54,23 @@
                     </div>
                 </div>
                 <div class="flex items-center flex-wrap gap-2 self-stretch sm:self-auto justify-end">
-                    <!-- Tombol Kembali ke Home Page -->
-                    <a href="index.html" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-sm cursor-pointer" title="Kembali ke Home Page JemaatID">
-                        <i class="fa-solid fa-house mr-1.5"></i> Home
-                    </a>
+                    <button onclick="updateUI()" class="bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-sm cursor-pointer" title="Refresh">
+                        <i class="fa-solid fa-arrows-rotate mr-1.5"></i> Refresh
+                    </button>
                     <!-- Global Combined Import & Export Buttons -->
                     <button onclick="document.getElementById('global-file-upload').click()" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-sm cursor-pointer" title="Import 2 Sheet (Ibadah & Kegiatan)">
-                        <i class="fa-solid fa-file-import mr-1.5"></i> Import Semua (Excel)
+                        <i class="fa-solid fa-file-import mr-1.5"></i> Import Excel
                     </button>
                     <input type="file" id="global-file-upload" class="hidden" accept=".xlsx, .xls" onchange="importAllFromExcel(event)">
                     
                     <button onclick="exportAllToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-sm cursor-pointer" title="Export 2 Sheet (Ibadah & Kegiatan)">
-                        <i class="fa-solid fa-file-export mr-1.5"></i> Export Semua (Excel)
+                        <i class="fa-solid fa-file-export mr-1.5"></i> Export Excel
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Container -->
     <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-8">
         
         <!-- Dashboard Header & Filter -->
@@ -85,20 +82,57 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <label for="month-filter" class="text-sm font-medium text-gray-500">Periode:</label>
-                    <select id="month-filter" onchange="renderDashboard()" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer">
+                    <select id="month-filter" onchange="renderDashboard(); renderTable();" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none shadow-sm cursor-pointer">
                         <option value="all">Semua Waktu (All Time)</option>
                     </select>
                 </div>
             </div>
             
-            <!-- Cards Ringkasan Utama -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Cards Ringkasan Keuangan -->
+            <div class="mb-5">
+                <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center"><i class="fa-solid fa-wallet mr-2 text-emerald-600"></i> Ringkasan Kas & Keuangan</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-300 transition" onclick="editSaldoAwal()" title="Klik untuk atur Saldo Awal Sistem">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Saldo Awal</p>
+                            <p class="text-lg font-bold text-gray-800" id="dash-saldo-awal">Rp 0</p>
+                        </div>
+                        <div class="p-2.5 rounded-full bg-gray-50 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100 shadow-sm flex items-center">
+                        <div class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4"><i class="fa-solid fa-hand-holding-dollar text-lg"></i></div>
+                        <div>
+                            <p class="text-xs text-emerald-800 font-semibold uppercase">Total Penerimaan</p>
+                            <p class="text-lg font-bold text-emerald-700" id="dash-total-income">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 rounded-xl p-4 border border-red-100 shadow-sm flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4"><i class="fa-solid fa-file-invoice-dollar text-lg"></i></div>
+                        <div>
+                            <p class="text-xs text-red-800 font-semibold uppercase">Total Pengeluaran</p>
+                            <p class="text-lg font-bold text-red-700" id="dash-total-expense">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm flex items-center">
+                        <div class="p-3 rounded-full bg-blue-600 text-white mr-4 shadow-md"><i class="fa-solid fa-piggy-bank text-lg"></i></div>
+                        <div>
+                            <p class="text-xs text-blue-800 font-semibold uppercase">Saldo Akhir</p>
+                            <p class="text-xl font-black text-blue-700" id="dash-saldo-akhir">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards Ringkasan Acara & Kehadiran -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center">
                     <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
                         <i class="fa-solid fa-calendar-check text-xl"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Total Acara</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Total Program/Acara</p>
                         <p class="text-2xl font-bold text-gray-800" id="dash-total-events">0</p>
                     </div>
                 </div>
@@ -108,7 +142,7 @@
                         <i class="fa-solid fa-users text-xl"></i>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Total Kehadiran</p>
+                        <p class="text-xs text-gray-500 font-semibold uppercase">Total Kehadiran (Real)</p>
                         <p class="text-2xl font-bold text-gray-800" id="dash-total-attendance">0</p>
                     </div>
                 </div>
@@ -122,35 +156,14 @@
                         <p class="text-2xl font-black text-gray-900" id="dash-total-new-visitors">0</p>
                     </div>
                 </div>
-
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center">
-                    <div class="p-3 rounded-full bg-emerald-100 text-emerald-600 mr-4">
-                        <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Total Penerimaan</p>
-                        <p class="text-base font-bold text-emerald-600" id="dash-total-income">Rp 0</p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
-                        <i class="fa-solid fa-file-invoice-dollar text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-500 font-semibold uppercase">Net Keuangan</p>
-                        <p class="text-base font-bold text-blue-600" id="dash-net-finance">Rp 0</p>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- Analisis Senior & Wawasan Spiritual / Musik -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 gap-3">
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 flex items-center">
-                        <i class="fa-solid fa-chart-line mr-2 text-indigo-600"></i> Analisis Sinergi Pelayanan & Spiritual (AI Analyst)
+                        <i class="fa-solid fa-chart-line mr-2 text-indigo-600"></i> Analisis Sinergi Pelayanan & Spiritual
                     </h2>
                     <p class="text-xs text-gray-500">Menganalisis kesehatian Worship Leader, Pengkhotbah, dan kuantitas Tim Musik terhadap antusiasme jemaat.</p>
                 </div>
@@ -182,15 +195,21 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i>Daftar Acara & Ibadah</h2>
-                    <p class="text-xs text-gray-500">Kelola kehadiran, keuangan, pengkhotbah, WL, dan tim pemusik setiap ibadah.</p>
+                    <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i>Daftar Laporan Ibadah</h2>
+                    <p class="text-xs text-gray-500">Kelola ibadah reguler (rutin) dan ibadah spesial (adhoc).</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer">
-                        <i class="fa-solid fa-plus mr-2"></i> Tambah Ibadah
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="openTemplateModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer border border-slate-200">
+                        <i class="fa-solid fa-list-check mr-2"></i> Master Reguler
+                    </button>
+                    <button onclick="openGenerateModal()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer border border-indigo-200">
+                        <i class="fa-solid fa-calendar-plus mr-2"></i> Generate Jadwal
+                    </button>
+                    <button onclick="openModal('reguler')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer">
+                        <i class="fa-solid fa-plus mr-2"></i> Laporan Ibadah
                     </button>
                     <button onclick="clearAllData()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer" title="Kosongkan Ibadah">
-                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua Ibadah
+                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
                     </button>
                 </div>
             </div>
@@ -214,7 +233,7 @@
                 <div id="empty-state" class="hidden flex-col items-center justify-center py-12 text-gray-400">
                     <i class="fa-solid fa-folder-open text-5xl mb-3 text-gray-300"></i>
                     <p class="text-lg font-medium text-gray-600">Belum ada data ibadah</p>
-                    <p class="text-sm text-gray-400 mt-1">Silakan tambah manual atau import data.</p>
+                    <p class="text-sm text-gray-400 mt-1">Silakan klik 'Laporan Ibadah' untuk menambahkan.</p>
                 </div>
             </div>
         </div>
@@ -224,14 +243,14 @@
             <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-hands-praying text-purple-600 mr-2"></i>Daftar Kegiatan Gereja (Pastoral)</h2>
-                    <p class="text-xs text-gray-500">Penyerahan Anak, Baptisan, Pernikahan, Pemberkatan Rumah, Kematian, Konseling, Kunjungan.</p>
+                    <p class="text-xs text-gray-500">Penyerahan Anak, Baptisan, Pernikahan, Kematian, dll.</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="openActivityModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer">
                         <i class="fa-solid fa-plus mr-2"></i> Tambah Kegiatan
                     </button>
                     <button onclick="clearAllActivities()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center cursor-pointer" title="Kosongkan Kegiatan">
-                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua Kegiatan
+                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Semua
                     </button>
                 </div>
             </div>
@@ -240,11 +259,11 @@
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
-                            <th class="p-4 border-b font-semibold">Jenis Kegiatan & Tanggal</th>
+                            <th class="p-4 border-b font-semibold">Jenis & Tanggal</th>
                             <th class="p-4 border-b font-semibold">Nama / Jemaat Terkait</th>
-                            <th class="p-4 border-b font-semibold">Detail Khusus (Agama/Tanggal Dll)</th>
-                            <th class="p-4 border-b font-semibold">Pelayan / Pendeta Tugas</th>
-                            <th class="p-4 border-b font-semibold">Catatan / Keterangan</th>
+                            <th class="p-4 border-b font-semibold">Detail Khusus</th>
+                            <th class="p-4 border-b font-semibold">Pelayan Tugas</th>
+                            <th class="p-4 border-b font-semibold">Catatan</th>
                             <th class="p-4 border-b font-semibold text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -262,6 +281,207 @@
 
     </main>
 
+    <!-- MODAL 0: Master Template Ibadah Reguler -->
+    <div id="template-modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div id="template-modal" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-list-check text-slate-600 mr-2"></i>Kelola Master Ibadah Reguler</h3>
+                <button onclick="closeTemplateModal()" class="text-gray-400 hover:text-red-500 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 p-6 overflow-y-auto min-h-0 bg-white">
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h4 class="text-sm font-bold text-slate-800 mb-3">Tambah Master Baru</h4>
+                    <form id="template-form" onsubmit="saveTemplate(event)">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                            <div class="sm:col-span-1">
+                                <input type="text" id="tpl-name" required placeholder="Nama (Mis: Ibadah Minggu Raya)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none">
+                            </div>
+                            <div>
+                                <input type="text" id="tpl-loc" placeholder="Lokasi (Mis: Main Hall)" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none">
+                            </div>
+                            <div>
+                                <input type="time" id="tpl-time" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Pengaturan Frekuensi -->
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 mb-3">
+                            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide"><i class="fa-solid fa-repeat mr-1"></i> Frekuensi Ibadah</label>
+                            <select id="tpl-freq-type" onchange="toggleTplFrequencyFields()" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none mb-3 bg-white cursor-pointer">
+                                <option value="weekly">Mingguan (Setiap Minggu, hari tetap)</option>
+                                <option value="interval">Interval Minggu (Mis: Tiap 2 Minggu)</option>
+                                <option value="monthly">Bulanan (Mis: Minggu ke-1, atau ke-1 & ke-3)</option>
+                            </select>
+
+                            <!-- Weekly fields -->
+                            <div id="tpl-freq-weekly" class="grid grid-cols-1">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Hari</label>
+                                    <select id="tpl-freq-weekday" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none bg-white cursor-pointer">
+                                        <option value="0">Minggu</option>
+                                        <option value="1">Senin</option>
+                                        <option value="2">Selasa</option>
+                                        <option value="3">Rabu</option>
+                                        <option value="4">Kamis</option>
+                                        <option value="5">Jumat</option>
+                                        <option value="6">Sabtu</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Interval fields -->
+                            <div id="tpl-freq-interval" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Hari</label>
+                                    <select id="tpl-freq-interval-weekday" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none bg-white cursor-pointer">
+                                        <option value="0">Minggu</option>
+                                        <option value="1">Senin</option>
+                                        <option value="2">Selasa</option>
+                                        <option value="3">Rabu</option>
+                                        <option value="4">Kamis</option>
+                                        <option value="5">Jumat</option>
+                                        <option value="6">Sabtu</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Setiap Berapa Minggu</label>
+                                    <input type="number" id="tpl-freq-interval-n" min="2" max="8" value="2" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Tanggal Acuan (Minggu Ke-1)</label>
+                                    <input type="date" id="tpl-freq-interval-anchor" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Monthly fields -->
+                            <div id="tpl-freq-monthly" class="hidden">
+                                <div class="mb-2">
+                                    <label class="block text-xs text-gray-500 mb-1">Hari</label>
+                                    <select id="tpl-freq-monthly-weekday" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none bg-white cursor-pointer">
+                                        <option value="0">Minggu</option>
+                                        <option value="1">Senin</option>
+                                        <option value="2">Selasa</option>
+                                        <option value="3">Rabu</option>
+                                        <option value="4">Kamis</option>
+                                        <option value="5">Jumat</option>
+                                        <option value="6">Sabtu</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Minggu Ke- (boleh pilih lebih dari satu, mis. ke-1 &amp; ke-3 = 2x sebulan)</label>
+                                    <div class="flex flex-wrap gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                        <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="checkbox" value="1" class="tpl-week-occ text-slate-600"> Ke-1</label>
+                                        <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="checkbox" value="2" class="tpl-week-occ text-slate-600"> Ke-2</label>
+                                        <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="checkbox" value="3" class="tpl-week-occ text-slate-600"> Ke-3</label>
+                                        <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="checkbox" value="4" class="tpl-week-occ text-slate-600"> Ke-4</label>
+                                        <label class="flex items-center gap-1.5 text-sm cursor-pointer"><input type="checkbox" value="last" class="tpl-week-occ text-slate-600"> Terakhir</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-slate-700 hover:bg-slate-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition shadow-sm cursor-pointer">
+                            <i class="fa-solid fa-plus mr-1"></i> Tambah Master
+                        </button>
+                    </form>
+                </div>
+
+                <h4 class="text-sm font-bold text-gray-700 mb-2">Daftar Master Ibadah Tersimpan</h4>
+                <div class="overflow-hidden border border-gray-200 rounded-xl">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="p-3 font-semibold text-gray-600">Nama Ibadah</th>
+                                <th class="p-3 font-semibold text-gray-600">Lokasi / Waktu</th>
+                                <th class="p-3 font-semibold text-gray-600">Pola Jadwal</th>
+                                <th class="p-3 font-semibold text-center text-gray-600 w-32">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="template-table-body" class="divide-y divide-gray-100">
+                            <!-- Diisi via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end bg-gray-50 flex-shrink-0">
+                <button onclick="closeTemplateModal()" class="px-5 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium transition cursor-pointer">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 0B: Generate Jadwal dari Master -->
+    <div id="generate-modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div id="generate-modal" class="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50 flex-shrink-0">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-calendar-plus text-indigo-600 mr-2"></i>Generate Jadwal Ibadah Reguler</h3>
+                <button onclick="closeGenerateModal()" class="text-gray-400 hover:text-red-500 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 p-6 overflow-y-auto min-h-0 bg-white">
+                <p class="text-xs text-gray-500 mb-4">Buat kerangka jadwal ibadah untuk rentang waktu tertentu (misal untuk perencanaan program 1 tahun). Data yang digenerate berstatus <b>Terjadwal</b>, tinggal dilengkapi kehadiran & keuangan setelah ibadah berlangsung.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+                    <div class="sm:col-span-1">
+                        <label class="block text-xs font-semibold text-indigo-900 mb-1">Master Ibadah</label>
+                        <select id="gen-template-select" class="w-full px-3 py-2 text-sm border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white cursor-pointer">
+                            <!-- Diisi via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-indigo-900 mb-1">Tanggal Mulai</label>
+                        <input type="date" id="gen-start-date" class="w-full px-3 py-2 text-sm border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-indigo-900 mb-1">Tanggal Selesai</label>
+                        <input type="date" id="gen-end-date" class="w-full px-3 py-2 text-sm border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <button type="button" onclick="previewGenerateSchedule()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm cursor-pointer mb-4">
+                    <i class="fa-solid fa-eye mr-1.5"></i> Tampilkan Preview Jadwal
+                </button>
+
+                <div id="gen-preview-wrapper" class="hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-sm font-bold text-gray-700">Preview Jadwal (<span id="gen-preview-count">0</span> tanggal)</h4>
+                        <div class="flex items-center gap-2 text-xs">
+                            <button type="button" onclick="genToggleAll(true)" class="text-indigo-600 hover:underline cursor-pointer">Pilih Semua</button>
+                            <span class="text-gray-300">|</span>
+                            <button type="button" onclick="genToggleAll(false)" class="text-indigo-600 hover:underline cursor-pointer">Kosongkan</button>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden border border-gray-200 rounded-xl max-h-72 overflow-y-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                <tr>
+                                    <th class="p-2 w-10"></th>
+                                    <th class="p-2 font-semibold text-gray-600">Tanggal</th>
+                                    <th class="p-2 font-semibold text-gray-600">Hari</th>
+                                    <th class="p-2 font-semibold text-gray-600">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gen-preview-body" class="divide-y divide-gray-100">
+                                <!-- Diisi via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-amber-600 mt-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Tanggal bertanda <b>"Sudah ada data"</b> otomatis tidak dicentang. Centang manual jika Anda yakin ingin menimpa data lama.</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50 flex-shrink-0">
+                <button onclick="closeGenerateModal()" class="px-5 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-medium transition cursor-pointer">Batal</button>
+                <button id="gen-save-btn" onclick="saveGeneratedSchedule()" class="hidden px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Jadwal Terpilih
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 1: Form Ibadah -->
     <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
         <div id="modal" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
@@ -276,27 +496,82 @@
                 <form id="data-form" onsubmit="saveData(event)">
                     <input type="hidden" id="form-id">
                     
+                    <!-- Pilihan Kategori Ibadah -->
+                    <div class="mb-5 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                        <label class="block text-sm font-bold text-blue-900 mb-3">Pilih Kategori Ibadah *</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm flex-1 hover:border-blue-300 transition">
+                                <input type="radio" name="form-type" value="reguler" onchange="toggleFormType()" class="text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-800 block">Ibadah Reguler</span>
+                                    <span class="text-xs text-gray-500 font-normal">Pilih dari Master Data rutin</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm flex-1 hover:border-blue-300 transition">
+                                <input type="radio" name="form-type" value="adhoc" onchange="toggleFormType()" checked class="text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-800 block">Ibadah Spesial (Adhoc)</span>
+                                    <span class="text-xs text-gray-500 font-normal">Input acara insidental baru</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Template Selector (Muncul jika Reguler) -->
+                        <div id="template-selector-group" class="mt-4 hidden pt-4 border-t border-blue-200/60">
+                            <label class="block text-sm font-medium text-blue-800 mb-1">Pilih Data Master Ibadah *</label>
+                            <div class="flex gap-2">
+                                <select id="form-template-id" onchange="applyTemplateData()" class="flex-1 px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white shadow-sm cursor-pointer">
+                                    <option value="">-- Pilih Ibadah Reguler --</option>
+                                </select>
+                                <button type="button" onclick="openTemplateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition shadow-sm flex-shrink-0" title="Kelola Master">
+                                    <i class="fa-solid fa-list-check"></i>
+                                </button>
+                            </div>
+
+                            <!-- Sinkronisasi ke Tanggal yang Sudah Digenerate -->
+                            <div id="scheduled-date-group" class="mt-3 hidden">
+                                <label class="block text-sm font-medium text-blue-800 mb-1">Tanggal Ibadah *</label>
+                                <select id="form-scheduled-date" onchange="applyScheduledDate()" class="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white shadow-sm cursor-pointer">
+                                    <!-- Diisi via JS -->
+                                </select>
+                                <p class="text-xs text-blue-700 mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Sudah ada jadwal untuk ibadah ini (dari Generate Jadwal). Pilih tanggalnya di sini agar tidak dobel, atau pilih "Tanggal Baru" bila belum ada di jadwal.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Pelaksanaan -->
+                    <div class="mb-5 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                        <label class="block text-sm font-bold text-amber-900 mb-2">Status Pelaksanaan</label>
+                        <select id="form-event-status" onchange="toggleFinanceAttendanceFields()" class="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-white shadow-sm cursor-pointer">
+                            <option value="Selesai">Telah Terlaksana (Laporan Selesai Lengkap)</option>
+                            <option value="Terjadwal">Program Mendatang (Terjadwal / Belum Terjadi)</option>
+                        </select>
+                        <p class="text-xs text-amber-700 mt-1">Pilih <b>Program Mendatang</b> jika ibadah belum terjadi untuk dibuat sebagai jadwal.</p>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Acara / Ibadah *</label>
-                            <input type="text" id="form-event-name" required placeholder="Mis: Ibadah Raya 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="text" id="form-event-name" required placeholder="Mis: Ibadah Raya 1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors duration-200">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi / Ruangan</label>
-                            <input type="text" id="form-location" placeholder="Mis: Main Hall" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <input type="text" id="form-location" placeholder="Mis: Main Hall" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors duration-200">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pelaksanaan *</label>
                             <input type="date" id="form-date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Waktu Ibadah (Jam)</label>
-                            <input type="time" id="form-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Waktu Mulai (Jam)</label>
+                            <input type="time" id="form-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors duration-200">
                         </div>
                     </div>
+
+                    <p id="finance-lock-hint" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3"><i class="fa-solid fa-lock mr-1"></i> Kehadiran &amp; keuangan baru bisa diisi setelah status diubah ke "Telah Terlaksana".</p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -322,11 +597,11 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pengkhotbah</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pengkhotbah / Pembicara</label>
                             <input type="text" id="form-preacher" placeholder="Nama Hamba Tuhan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tema Khotbah</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tema / Judul Khotbah</label>
                             <input type="text" id="form-sermon-theme" placeholder="Judul / Tema" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
@@ -337,8 +612,8 @@
                             <input type="text" id="form-wl" placeholder="Nama WL" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Pemusik (Pisahkan dengan koma)</label>
-                            <input type="text" id="form-musicians" placeholder="Mis: Budi (Keyboard), Ani (Bass), Candra (Drum)" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pemusik (Pisahkan koma)</label>
+                            <input type="text" id="form-musicians" placeholder="Mis: Budi, Ani, Candra" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                     </div>
                     
@@ -354,20 +629,20 @@
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan</label>
-                        <textarea id="form-notes" rows="2" placeholder="Informasi tambahan..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan Laporan</label>
+                        <textarea id="form-notes" rows="2" placeholder="Informasi atau evaluasi ibadah..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
                         <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition cursor-pointer">Batal</button>
-                        <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition shadow-sm cursor-pointer">Simpan Ibadah</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition shadow-sm cursor-pointer">Simpan Laporan</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 2: Form Kegiatan Gereja (Pastoral) dengan LoV Sesuai Jenis Kegiatan -->
+    <!-- MODAL 2: Form Kegiatan Gereja (Pastoral) -->
     <div id="activity-modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
         <div id="activity-modal" class="bg-white rounded-2xl shadow-xl w-full max-w-xl overflow-hidden hidden modal-enter flex flex-col max-h-[90vh]">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
@@ -399,7 +674,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Jemaat / Keluarga *</label>
-                            <input type="text" id="act-name" required placeholder="Mis: Keluarga Budi Santoso / Sdr. Alex" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
+                            <input type="text" id="act-name" required placeholder="Mis: Kel. Budi Santoso" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Pelaksanaan *</label>
@@ -407,9 +682,9 @@
                         </div>
                     </div>
 
-                    <!-- Field Dinamis berdasarkan jenis kegiatan (LoV / Sesuai Semestinya) -->
+                    <!-- Field Dinamis berdasarkan jenis kegiatan -->
                     <div id="dynamic-activity-fields" class="mb-4 space-y-4">
-                        <!-- Diisi JS sesuai jenis kegiatan yang dipilih agar tidak ada field mubazir (seperti alamat untuk baptisan) -->
+                        <!-- Diisi via JS -->
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -418,17 +693,17 @@
                             <input type="text" id="act-minister" placeholder="Nama Pdt / Penatua" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status / Keterangan Singkat</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Keterlaksanaan</label>
                             <select id="act-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
                                 <option value="Selesai / Terlaksana">Selesai / Terlaksana</option>
                                 <option value="Terjadwal / Akan Datang">Terjadwal / Akan Datang</option>
-                                <option value="Dalam Proses / Konseling Lanjutan">Dalam Proses / Konseling Lanjutan</option>
+                                <option value="Dalam Proses / Konseling">Dalam Proses / Konseling</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan / Detail Tambahan</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan</label>
                         <textarea id="act-notes" rows="2" placeholder="Catatan penting pastoral..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none"></textarea>
                     </div>
 
@@ -443,16 +718,23 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        const STORAGE_KEY_EVENTS = 'jemaatid_events_data_v2';
+        // Storage Keys
+        const STORAGE_KEY_EVENTS = 'jemaatid_events_data_v3';
         const STORAGE_KEY_ACTIVITIES = 'jemaatid_activities_data_v2';
         const CHURCH_NAME_KEY = 'jemaatid_church_name_v2';
+        const STORAGE_KEY_TEMPLATES = 'jemaatid_regular_templates_v1';
+        const STORAGE_KEY_SALDO_AWAL = 'jemaatid_saldo_awal_v1';
         
+        // State Variables
         let eventsData = JSON.parse(localStorage.getItem(STORAGE_KEY_EVENTS)) || [];
         let activitiesData = JSON.parse(localStorage.getItem(STORAGE_KEY_ACTIVITIES)) || [];
+        let regularTemplates = JSON.parse(localStorage.getItem(STORAGE_KEY_TEMPLATES)) || [];
         let churchName = localStorage.getItem(CHURCH_NAME_KEY) || 'Gereja JemaatID';
+        let initialBalance = parseFloat(localStorage.getItem(STORAGE_KEY_SALDO_AWAL)) || 0;
         let isFirstLoad = true;
         let currentAnalyticsData = {};
 
+        // Utility Functions
         function formatCurrency(amount) {
             if(!amount) return 'Rp 0';
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
@@ -480,7 +762,26 @@
                     churchName = result.value.trim();
                     localStorage.setItem(CHURCH_NAME_KEY, churchName);
                     document.getElementById('nav-church-name').innerText = churchName;
-                    Swal.fire({ title: 'Berhasil', text: 'Nama gereja diperbarui.', icon: 'success', timer: 1200, showConfirmButton: false });
+                    Swal.fire({ title: 'Tersimpan', text: 'Nama gereja diperbarui.', icon: 'success', timer: 1200, showConfirmButton: false });
+                }
+            });
+        }
+
+        function editSaldoAwal() {
+            Swal.fire({
+                title: 'Atur Saldo Awal Sistem',
+                text: 'Masukkan nominal saldo awal kas gereja sebelum memulai pencatatan di sistem ini.',
+                input: 'number',
+                inputValue: initialBalance,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    initialBalance = parseFloat(result.value) || 0;
+                    localStorage.setItem(STORAGE_KEY_SALDO_AWAL, initialBalance);
+                    renderDashboard();
+                    Swal.fire({ title: 'Tersimpan', text: 'Saldo awal diperbarui.', icon: 'success', timer: 1200, showConfirmButton: false });
                 }
             });
         }
@@ -523,148 +824,64 @@
             }
         }
 
-        function updateUI() {
-            document.getElementById('nav-church-name').innerText = churchName;
-            
-            eventsData.sort((a, b) => {
-                const dateA = new Date(`${a.date}T${a.time || '00:00'}`);
-                const dateB = new Date(`${b.date}T${b.time || '00:00'}`);
-                return dateB - dateA;
-            });
-
-            activitiesData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            populateMonthFilter();
-            renderDashboard();
-            renderTable();
-            renderActivityTable();
-            
-            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(eventsData));
-            localStorage.setItem(STORAGE_KEY_ACTIVITIES, JSON.stringify(activitiesData));
-        }
-
-        // --- ANALISIS MENDALAM (WL, Preacher, Jumlah Pemusik, Sinergi) ---
         function calculateAdvancedAnalytics(filterValue) {
             let result = {
-                filter: filterValue,
-                totalEvents: 0,
-                totalAttendance: 0,
-                totalNewVisitors: 0,
-                totalIncome: 0,
-                totalExpense: 0,
-                netFinance: 0,
-                avgAttendance: 0,
-                avgIncomePerAttendee: 0,
-                momText: '-',
-                topPreacher: '-',
-                topWL: '-',
-                suggestionPoints: []
+                filter: filterValue, totalEvents: 0, totalAttendance: 0, totalNewVisitors: 0,
+                totalIncome: 0, totalExpense: 0, netFinance: 0, avgAttendance: 0, avgIncomePerAttendee: 0,
+                momText: '-', topPreacher: '-', topWL: '-', suggestionPoints: []
             };
 
             const allEvents = eventsData;
             if (allEvents.length === 0) return result;
 
             let filteredEvents = allEvents;
-            if (filterValue !== 'all') {
-                filteredEvents = allEvents.filter(d => d.date && d.date.startsWith(filterValue));
-            }
+            if (filterValue !== 'all') filteredEvents = allEvents.filter(d => d.date && d.date.startsWith(filterValue));
+
+            const completedEvents = filteredEvents.filter(d => d.eventStatus !== 'Terjadwal');
 
             result.totalEvents = filteredEvents.length;
-            if (result.totalEvents === 0) return result;
+            if (completedEvents.length === 0) return result;
 
-            result.totalAttendance = filteredEvents.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
-            result.totalNewVisitors = filteredEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
-            result.totalIncome = filteredEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
-            result.totalExpense = filteredEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
+            result.totalAttendance = completedEvents.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
+            result.totalNewVisitors = completedEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
+            result.totalIncome = completedEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
+            result.totalExpense = completedEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
             result.netFinance = result.totalIncome - result.totalExpense;
-            result.avgAttendance = Math.round(result.totalAttendance / result.totalEvents);
+            result.avgAttendance = Math.round(result.totalAttendance / completedEvents.length);
             result.avgIncomePerAttendee = result.totalAttendance > 0 ? Math.round(result.totalIncome / result.totalAttendance) : 0;
 
-            // Analisis Pengkhotbah
             const preacherMap = {};
-            filteredEvents.forEach(item => {
-                const p = (item.preacher || 'Tidak Tercatat').trim();
-                if (!preacherMap[p]) preacherMap[p] = { count: 0, totalAtt: 0 };
-                preacherMap[p].count++;
-                preacherMap[p].totalAtt += (parseInt(item.attendance) || 0);
-            });
-            const preacherList = Object.keys(preacherMap).map(name => ({
-                name, count: preacherMap[name].count, avgAtt: Math.round(preacherMap[name].totalAtt / preacherMap[name].count)
-            })).sort((a, b) => b.avgAtt - a.avgAtt);
-
-            if (preacherList.length > 0) {
-                result.topPreacher = `${preacherList[0].name} (Rata-rata ${preacherList[0].avgAtt} jiwa)`;
-            }
-
-            // Analisis Worship Leader & Keterlibatan Pemusik (Sinergi Spiritual & Musik)
+            const wlMap = {};
             let totalWithFullMusic = 0; let countFullMusic = 0;
             let totalWithMinMusic = 0; let countMinMusic = 0;
-            const wlMap = {};
 
-            filteredEvents.forEach(item => {
-                const wl = (item.wl || 'Tidak Tercatat').trim();
+            completedEvents.forEach(item => {
                 const att = parseInt(item.attendance) || 0;
-                
-                if (!wlMap[wl]) wlMap[wl] = { count: 0, totalAtt: 0 };
-                wlMap[wl].count++;
-                wlMap[wl].totalAtt += att;
 
-                // Hitung jumlah pemusik berdasarkan koma
+                const preacher = (item.preacher || 'Tidak Tercatat').trim();
+                if (!preacherMap[preacher]) preacherMap[preacher] = { count: 0, totalAtt: 0 };
+                preacherMap[preacher].count++; preacherMap[preacher].totalAtt += att;
+
+                const wl = (item.wl || 'Tidak Tercatat').trim();
+                if (!wlMap[wl]) wlMap[wl] = { count: 0, totalAtt: 0 };
+                wlMap[wl].count++; wlMap[wl].totalAtt += att;
+
                 const musCount = item.musicians ? item.musicians.split(',').filter(m => m.trim().length > 0).length : 0;
-                if (musCount >= 3) {
-                    totalWithFullMusic += att; countFullMusic++;
-                } else {
-                    totalWithMinMusic += att; countMinMusic++;
-                }
+                if (musCount >= 3) { totalWithFullMusic += att; countFullMusic++; } 
+                else { totalWithMinMusic += att; countMinMusic++; }
             });
 
-            const wlList = Object.keys(wlMap).map(name => ({
-                name, count: wlMap[name].count, avgAtt: Math.round(wlMap[name].totalAtt / wlMap[name].count)
-            })).sort((a, b) => b.avgAtt - a.avgAtt);
+            const preacherList = Object.keys(preacherMap).map(n => ({ name: n, avgAtt: Math.round(preacherMap[n].totalAtt / preacherMap[n].count) })).sort((a, b) => b.avgAtt - a.avgAtt);
+            if (preacherList.length > 0) result.topPreacher = `${preacherList[0].name} (Rata ${preacherList[0].avgAtt} jiwa)`;
 
-            if (wlList.length > 0) {
-                result.topWL = `${wlList[0].name} (Rata-rata ${wlList[0].avgAtt} jiwa)`;
-            }
+            const wlList = Object.keys(wlMap).map(n => ({ name: n, avgAtt: Math.round(wlMap[n].totalAtt / wlMap[n].count) })).sort((a, b) => b.avgAtt - a.avgAtt);
+            if (wlList.length > 0) result.topWL = `${wlList[0].name} (Rata ${wlList[0].avgAtt} jiwa)`;
 
-            // MoM Calculation
-            if (filterValue !== 'all') {
-                const [y, m] = filterValue.split('-').map(Number);
-                let prevM = m - 1; let prevY = y;
-                if (prevM === 0) { prevM = 12; prevY = y - 1; }
-                const prevMonthStr = `${prevY}-${String(prevM).padStart(2, '0')}`;
-                const prevData = allEvents.filter(d => d.date && d.date.startsWith(prevMonthStr));
-                const prevAtt = prevData.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
-
-                if (prevAtt > 0) {
-                    const momPercent = ((result.totalAttendance - prevAtt) / prevAtt) * 100;
-                    result.momText = momPercent >= 0 ? `<span class="text-green-600 font-bold">+${momPercent.toFixed(1)}%</span> vs bulan lalu` : `<span class="text-red-500 font-bold">${momPercent.toFixed(1)}%</span> vs bulan lalu`;
-                } else {
-                    result.momText = `<span class="text-indigo-600 font-bold">Data awal</span>`;
-                }
-            } else {
-                result.momText = `${result.avgAttendance} jiwa rata-rata/ibadah`;
-            }
-
-            // Rekomendasi / Wawasan Analis Senior
-            if (preacherList.length > 0) {
-                result.suggestionPoints.push(`Khotbah & Firman: Pengkhotbah '${preacherList[0].name}' mencatatkan kehadiran jemaat tertinggi (${preacherList[0].avgAtt} jiwa/ibadah). Topik dan kedalaman penyampaian terbukti sangat memberkati jemaat.`);
-            }
-
+            if (preacherList.length > 0) result.suggestionPoints.push(`Khotbah: Pengkhotbah '${preacherList[0].name}' mencatatkan kehadiran tertinggi (${preacherList[0].avgAtt} jiwa rata-rata).`);
             if (wlList.length > 0) {
                 const avgFull = countFullMusic > 0 ? Math.round(totalWithFullMusic / countFullMusic) : 0;
                 const avgMin = countMinMusic > 0 ? Math.round(totalWithMinMusic / countMinMusic) : 0;
-                
-                result.suggestionPoints.push(`Pujian & Penyembahan (WL '${wlList[0].name}'): Terpantau memimpin jemaat dengan tingkat kehadiran optimal (${wlList[0].avgAtt} jiwa).`);
-                
-                if (avgFull > avgMin && avgFull > 0) {
-                    result.suggestionPoints.push(`Dampak Tim Musik: Ibadah yang didukung tim musik lengkap (≥ 3 pemusik yang sehati melayani) rata-rata dihadiri ${avgFull} jiwa, dibanding ${avgMin} jiwa pada formasi minimal. Kesehatian dan kesungguhan pemusik terbukti membangun atmosfer hadirat Tuhan yang kuat.`);
-                }
-            }
-
-            if (result.netFinance > 0) {
-                result.suggestionPoints.push(`Kesehatan Keuangan: Surplus sebesar ${formatCurrency(result.netFinance)}. Keuangan gereja dalam kondisi stabil dan sehat.`);
-            } else if (result.netFinance < 0) {
-                result.suggestionPoints.push(`Kesehatan Keuangan: Defisit sebesar ${formatCurrency(Math.abs(result.netFinance))}. Perlu perhatian khusus pada pengelolaan operasional.`);
+                if (avgFull > avgMin && avgFull > 0) result.suggestionPoints.push(`Musik: Ibadah dengan tim lengkap (≥3 pemusik) rata-rata dihadiri ${avgFull} jiwa dibanding ${avgMin} jiwa (tim minimal).`);
             }
 
             return result;
@@ -674,129 +891,147 @@
             const filterValue = document.getElementById('month-filter').value;
             let filteredEvents = eventsData;
             
+            let calculatedSaldoAwal = initialBalance;
+
             if (filterValue !== 'all') {
                 filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
+                
+                const [filterY, filterM] = filterValue.split('-');
+                const filterDate = new Date(filterY, filterM - 1, 1);
+                
+                eventsData.forEach(item => {
+                    if (item.date && item.eventStatus !== 'Terjadwal') {
+                        const itemDate = new Date(item.date);
+                        if (itemDate < filterDate) {
+                            calculatedSaldoAwal += (parseInt(item.income) || 0) - (parseInt(item.expense) || 0);
+                        }
+                    }
+                });
             }
 
+            const completedEvents = filteredEvents.filter(item => item.eventStatus !== 'Terjadwal');
+
             const totalEvents = filteredEvents.length;
-            const totalAttendance = filteredEvents.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
-            const totalNewVisitors = filteredEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
-            const totalIncome = filteredEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
-            const totalExpense = filteredEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
-            const netFinance = totalIncome - totalExpense;
+            const totalAttendance = completedEvents.reduce((sum, item) => sum + (parseInt(item.attendance) || 0), 0);
+            const totalNewVisitors = completedEvents.reduce((sum, item) => sum + (parseInt(item.newVisitors) || 0), 0);
+            const totalIncome = completedEvents.reduce((sum, item) => sum + (parseInt(item.income) || 0), 0);
+            const totalExpense = completedEvents.reduce((sum, item) => sum + (parseInt(item.expense) || 0), 0);
+            
+            const saldoAkhir = calculatedSaldoAwal + totalIncome - totalExpense;
+
+            document.getElementById('dash-saldo-awal').innerText = formatCurrency(calculatedSaldoAwal);
+            document.getElementById('dash-total-income').innerText = formatCurrency(totalIncome);
+            document.getElementById('dash-total-expense').innerText = formatCurrency(totalExpense);
+            
+            const saldoAkhirEl = document.getElementById('dash-saldo-akhir');
+            saldoAkhirEl.innerText = formatCurrency(saldoAkhir);
+            saldoAkhirEl.className = saldoAkhir >= 0 ? 'text-xl font-black text-blue-700' : 'text-xl font-black text-red-600';
 
             document.getElementById('dash-total-events').innerText = totalEvents;
             document.getElementById('dash-total-attendance').innerText = totalAttendance.toLocaleString('id-ID');
             document.getElementById('dash-total-new-visitors').innerText = totalNewVisitors.toLocaleString('id-ID');
-            document.getElementById('dash-total-income').innerText = formatCurrency(totalIncome);
-            
-            const netEl = document.getElementById('dash-net-finance');
-            netEl.innerText = formatCurrency(netFinance);
-            netEl.className = netFinance >= 0 ? 'text-base font-bold text-emerald-600' : 'text-base font-bold text-red-600';
 
             currentAnalyticsData = calculateAdvancedAnalytics(filterValue);
-            const analyticsContainer = document.getElementById('analytics-container');
-            const suggestionContent = document.getElementById('suggestion-content');
             
+            const analyticsContainer = document.getElementById('analytics-container');
             analyticsContainer.innerHTML = `
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
-                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Tren Kehadiran</p>
-                    <p class="text-base font-bold text-gray-800">${currentAnalyticsData.momText || '-'}</p>
-                    <p class="text-xs text-gray-400 mt-1">Rata-rata: ${currentAnalyticsData.avgAttendance || 0} jiwa</p>
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Rata-rata Kehadiran</p>
+                    <p class="text-xl font-bold text-gray-800">${currentAnalyticsData.avgAttendance || 0} <span class="text-sm font-normal text-gray-500">jiwa/ibadah</span></p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
-                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Kesehatan Finansial</p>
-                    <p class="text-base font-bold ${currentAnalyticsData.netFinance >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatCurrency(currentAnalyticsData.netFinance)}</p>
-                    <p class="text-xs text-gray-400 mt-1">Per Jiwa: ${formatCurrency(currentAnalyticsData.avgIncomePerAttendee)}</p>
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Penerimaan Per Jiwa</p>
+                    <p class="text-xl font-bold ${currentAnalyticsData.avgIncomePerAttendee >= 0 ? 'text-emerald-600' : 'text-gray-800'}">${formatCurrency(currentAnalyticsData.avgIncomePerAttendee)}</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
-                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Pengkhotbah Utama</p>
+                    <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Pengkhotbah Favorit</p>
                     <p class="text-sm font-bold text-blue-700 truncate" title="${currentAnalyticsData.topPreacher}"><i class="fa-solid fa-microphone mr-1"></i> ${currentAnalyticsData.topPreacher}</p>
-                    <p class="text-xs text-gray-400 mt-1">Daya tarik jemaat</p>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm">
                     <p class="text-xs text-gray-500 font-semibold uppercase mb-1">Worship Leader</p>
                     <p class="text-sm font-bold text-amber-600 truncate" title="${currentAnalyticsData.topWL}"><i class="fa-solid fa-music mr-1"></i> ${currentAnalyticsData.topWL}</p>
-                    <p class="text-xs text-gray-400 mt-1">Atmosfer penyembahan</p>
                 </div>
             `;
 
+            const suggestionContent = document.getElementById('suggestion-content');
             if (currentAnalyticsData.suggestionPoints && currentAnalyticsData.suggestionPoints.length > 0) {
-                suggestionContent.innerHTML = `<ul class="list-disc pl-5 space-y-1.5">` + 
-                    currentAnalyticsData.suggestionPoints.map(p => `<li>${p}</li>`).join('') + 
-                    `</ul>`;
+                suggestionContent.innerHTML = `<ul class="list-disc pl-5 space-y-1.5">` + currentAnalyticsData.suggestionPoints.map(p => `<li>${p}</li>`).join('') + `</ul>`;
             } else {
                 suggestionContent.innerHTML = `<p class="text-gray-500">Belum cukup data untuk analisis lanjutan.</p>`;
             }
         }
 
         function toggleSuggestion() {
-            const area = document.getElementById('suggestion-area');
-            area.classList.toggle('hidden');
+            document.getElementById('suggestion-area').classList.toggle('hidden');
         }
 
-        // --- RENDER TABLE 1: Ibadah ---
-        function renderTable() {
-            const tbody = document.getElementById('table-body');
-            const emptyState = document.getElementById('empty-state');
+        function openTemplateModal() {
+            renderTemplateTable();
+            const backdrop = document.getElementById('template-modal-backdrop');
+            const modal = document.getElementById('template-modal');
+            backdrop.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave');
+            modal.classList.add('modal-enter');
+        }
+
+        function closeTemplateModal() {
+            const modal = document.getElementById('template-modal');
+            const backdrop = document.getElementById('template-modal-backdrop');
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-leave');
+            setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
+            
+            populateTemplateDropdown();
+        }
+
+        const WEEKDAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+        function toggleTplFrequencyFields() {
+            const type = document.getElementById('tpl-freq-type').value;
+            document.getElementById('tpl-freq-weekly').classList.toggle('hidden', type !== 'weekly');
+            document.getElementById('tpl-freq-interval').classList.toggle('hidden', type !== 'interval');
+            document.getElementById('tpl-freq-monthly').classList.toggle('hidden', type !== 'monthly');
+        }
+
+        function describeFrequency(tpl) {
+            if (!tpl.frequency) return '<span class="text-gray-400 italic">Belum diatur</span>';
+            const f = tpl.frequency;
+            if (f.type === 'weekly') {
+                return `Setiap Minggu, hari <b>${WEEKDAY_NAMES[f.weekday]}</b>`;
+            }
+            if (f.type === 'interval') {
+                return `Tiap <b>${f.interval} minggu</b> sekali, hari <b>${WEEKDAY_NAMES[f.weekday]}</b>`;
+            }
+            if (f.type === 'monthly') {
+                const labels = f.occurrences.map(o => o === 'last' ? 'Terakhir' : `Ke-${o}`);
+                const freqLabel = f.occurrences.length >= 2 ? `${f.occurrences.length}x sebulan` : '1x sebulan';
+                return `Bulanan (${freqLabel}), Minggu ${labels.join(' &amp; ')}, hari <b>${WEEKDAY_NAMES[f.weekday]}</b>`;
+            }
+            return '-';
+        }
+
+        function renderTemplateTable() {
+            const tbody = document.getElementById('template-table-body');
             tbody.innerHTML = '';
             
-            const filterValue = document.getElementById('month-filter').value;
-            let filteredEvents = eventsData;
-            if (filterValue !== 'all') {
-                filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
-            }
-
-            if (filteredEvents.length === 0) {
-                emptyState.style.display = 'flex';
+            if (regularTemplates.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-sm text-gray-500 italic">Belum ada master data ibadah reguler.</td></tr>`;
                 return;
-            } else {
-                emptyState.style.display = 'none';
             }
 
-            filteredEvents.forEach(item => {
-                const totalJemaat = parseInt(item.attendance) || 0;
-                const jemaatBaru = parseInt(item.newVisitors) || 0;
-                const income = parseInt(item.income) || 0;
-                const expense = parseInt(item.expense) || 0;
-                const net = income - expense;
-
+            regularTemplates.forEach(tpl => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-blue-50/50 transition group';
                 tr.innerHTML = `
-                    <td class="p-4 align-top">
-                        <div class="font-medium text-gray-800">${formatDate(item.date)}</div>
-                        <div class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1"></i> ${item.time || '-'}</div>
-                        <div class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-location-dot mr-1"></i> ${item.location || '-'}</div>
-                    </td>
-                    <td class="p-4 align-top">
-                        <div class="font-bold text-blue-700">${item.eventName}</div>
-                        ${item.sermonTheme ? `<div class="text-xs text-gray-600 mt-1"><i class="fa-solid fa-book-bible mr-1"></i> ${item.sermonTheme}</div>` : ''}
-                        ${item.notes ? `<div class="text-xs text-gray-400 mt-1 max-w-[200px] truncate" title="${item.notes}">Catatan: ${item.notes}</div>` : ''}
-                    </td>
-                    <td class="p-4 align-top text-center">
-                        <div class="text-sm font-bold text-gray-800 bg-gray-100 rounded-full px-2.5 py-1 inline-block mb-1">${totalJemaat.toLocaleString('id-ID')} Total</div>
-                        ${jemaatBaru > 0 ? `<div class="text-xs font-semibold text-emerald-600">${jemaatBaru} Baru</div>` : ''}
-                    </td>
-                    <td class="p-4 align-top text-right">
-                        <div class="text-xs font-medium text-emerald-600">+ ${formatCurrency(income)}</div>
-                        <div class="text-xs font-medium text-red-600">- ${formatCurrency(expense)}</div>
-                        <div class="text-xs font-bold ${net >= 0 ? 'text-blue-600' : 'text-red-600'} mt-1">= ${formatCurrency(net)}</div>
-                    </td>
-                    <td class="p-4 align-top">
-                        <div class="text-sm space-y-1">
-                            ${item.preacher ? `<div class="text-gray-800 font-medium"><i class="fa-solid fa-microphone text-blue-500 mr-1 w-4"></i> ${item.preacher}</div>` : '<div class="text-gray-400 italic text-xs">Tanpa Khotbah</div>'}
-                            ${item.wl ? `<div class="text-gray-600 text-xs"><i class="fa-solid fa-music text-amber-500 mr-1 w-4"></i> WL: ${item.wl}</div>` : ''}
-                            ${item.musicians ? `<div class="text-gray-500 text-xs"><i class="fa-solid fa-guitar text-gray-400 mr-1 w-4"></i> Musik: ${item.musicians}</div>` : ''}
-                            ${item.otherServers ? `<div class="text-gray-400 text-xs"><i class="fa-solid fa-users text-gray-300 mr-1 w-4"></i> Lainnya: ${item.otherServers}</div>` : ''}
-                        </div>
-                    </td>
-                    <td class="p-4 align-top text-center">
-                        <div class="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition">
-                            <button type="button" onclick="editData('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded transition cursor-pointer" title="Edit">
-                                <i class="fa-solid fa-pen-to-square"></i>
+                    <td class="p-3 font-medium text-slate-800">${tpl.name}</td>
+                    <td class="p-3 text-gray-600">${tpl.defaultLocation || '-'}${tpl.defaultTime ? ' &bull; ' + tpl.defaultTime : ''}</td>
+                    <td class="p-3 text-gray-600 whitespace-normal max-w-xs">${describeFrequency(tpl)}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button type="button" onclick="closeTemplateModal(); openGenerateModal('${tpl.id}');" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded transition cursor-pointer" title="Generate Jadwal dari Master ini">
+                                <i class="fa-solid fa-calendar-plus"></i>
                             </button>
-                            <button type="button" onclick="confirmDelete('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition cursor-pointer" title="Hapus">
+                            <button type="button" onclick="deleteTemplate('${tpl.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded transition cursor-pointer" title="Hapus Master">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -806,139 +1041,397 @@
             });
         }
 
-        // --- RENDER TABLE 2: Kegiatan Gereja (Pastoral) ---
-        function renderActivityTable() {
-            const tbody = document.getElementById('activity-table-body');
-            const emptyState = document.getElementById('activity-empty-state');
+        function saveTemplate(e) {
+            e.preventDefault();
+
+            const freqType = document.getElementById('tpl-freq-type').value;
+            let frequency = null;
+
+            if (freqType === 'weekly') {
+                frequency = { type: 'weekly', weekday: parseInt(document.getElementById('tpl-freq-weekday').value) };
+            } else if (freqType === 'interval') {
+                const n = parseInt(document.getElementById('tpl-freq-interval-n').value) || 2;
+                const anchor = document.getElementById('tpl-freq-interval-anchor').value || new Date().toISOString().slice(0,10);
+                frequency = { type: 'interval', weekday: parseInt(document.getElementById('tpl-freq-interval-weekday').value), interval: n, anchor: anchor };
+            } else if (freqType === 'monthly') {
+                const occChecks = document.querySelectorAll('.tpl-week-occ:checked');
+                const occurrences = Array.from(occChecks).map(c => (c.value === 'last') ? 'last' : parseInt(c.value));
+                if (occurrences.length === 0) {
+                    Swal.fire('Perhatian', 'Pilih minimal satu "Minggu Ke-" untuk pola Bulanan.', 'warning');
+                    return;
+                }
+                frequency = { type: 'monthly', weekday: parseInt(document.getElementById('tpl-freq-monthly-weekday').value), occurrences: occurrences };
+            }
+
+            const newTpl = {
+                id: 'tpl_' + Date.now().toString(),
+                name: document.getElementById('tpl-name').value.trim(),
+                defaultLocation: document.getElementById('tpl-loc').value.trim(),
+                defaultTime: document.getElementById('tpl-time').value,
+                frequency: frequency
+            };
+            
+            regularTemplates.push(newTpl);
+            localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(regularTemplates));
+            document.getElementById('template-form').reset();
+            toggleTplFrequencyFields();
+            renderTemplateTable();
+            
+            Swal.fire({ title: 'Tersimpan', text: 'Master Ibadah Reguler ditambahkan.', icon: 'success', timer: 1000, showConfirmButton: false });
+        }
+
+        function deleteTemplate(id) {
+            Swal.fire({
+                title: 'Hapus Master?',
+                text: "Ibadah yang sudah diinput tidak akan terhapus, hanya master template-nya saja.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    regularTemplates = regularTemplates.filter(t => t.id !== id);
+                    localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(regularTemplates));
+                    renderTemplateTable();
+                    Swal.fire('Terhapus!', '', 'success');
+                }
+            });
+        }
+
+        // ==================== GENERATE JADWAL DARI MASTER ====================
+
+        function ymd(d) {
+            return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        }
+
+        function nthWeekdayOfMonth(year, month, weekday, n) {
+            if (n === 'last') {
+                const lastDay = new Date(year, month + 1, 0);
+                const diff = (lastDay.getDay() - weekday + 7) % 7;
+                return new Date(year, month + 1, 0 - diff);
+            }
+            const firstDay = new Date(year, month, 1);
+            const diff = (weekday - firstDay.getDay() + 7) % 7;
+            const day = 1 + diff + (n - 1) * 7;
+            const result = new Date(year, month, day);
+            if (result.getMonth() !== month) return null;
+            return result;
+        }
+
+        function computeScheduleDates(tpl, startStr, endStr) {
+            const start = new Date(startStr + 'T00:00:00');
+            const end = new Date(endStr + 'T00:00:00');
+            if (isNaN(start) || isNaN(end) || start > end) return [];
+            const f = tpl.frequency;
+            const dates = [];
+            if (!f) return dates;
+
+            if (f.type === 'weekly') {
+                let cur = new Date(start);
+                const shift = (f.weekday - cur.getDay() + 7) % 7;
+                cur.setDate(cur.getDate() + shift);
+                while (cur <= end) {
+                    dates.push(new Date(cur));
+                    cur.setDate(cur.getDate() + 7);
+                }
+            } else if (f.type === 'interval') {
+                const anchor = new Date(f.anchor + 'T00:00:00');
+                let base = new Date(anchor);
+                base.setDate(base.getDate() + ((f.weekday - base.getDay() + 7) % 7));
+                let cur = new Date(base);
+                while (cur > start) cur.setDate(cur.getDate() - 7 * f.interval);
+                while (cur < start) cur.setDate(cur.getDate() + 7 * f.interval);
+                while (cur <= end) {
+                    if (cur >= start) dates.push(new Date(cur));
+                    cur.setDate(cur.getDate() + 7 * f.interval);
+                }
+            } else if (f.type === 'monthly') {
+                let y = start.getFullYear(), m = start.getMonth();
+                const endY = end.getFullYear(), endM = end.getMonth();
+                while (y < endY || (y === endY && m <= endM)) {
+                    f.occurrences.forEach(occ => {
+                        const d = nthWeekdayOfMonth(y, m, f.weekday, occ);
+                        if (d && d >= start && d <= end) dates.push(d);
+                    });
+                    m++;
+                    if (m > 11) { m = 0; y++; }
+                }
+                dates.sort((a,b) => a - b);
+            }
+            return dates;
+        }
+
+        let genActiveTemplate = null;
+        let genPreviewList = [];
+
+        function openGenerateModal(presetTemplateId) {
+            const select = document.getElementById('gen-template-select');
+            select.innerHTML = '';
+            if (regularTemplates.length === 0) {
+                select.innerHTML = '<option value="">-- Belum ada Master Ibadah, buat dulu di "Master Reguler" --</option>';
+            } else {
+                regularTemplates.forEach(tpl => {
+                    const opt = document.createElement('option');
+                    opt.value = tpl.id;
+                    opt.text = tpl.name;
+                    select.appendChild(opt);
+                });
+            }
+            if (presetTemplateId) select.value = presetTemplateId;
+
+            document.getElementById('gen-preview-wrapper').classList.add('hidden');
+            document.getElementById('gen-save-btn').classList.add('hidden');
+            genPreviewList = [];
+
+            const today = new Date();
+            if (!document.getElementById('gen-start-date').value) {
+                document.getElementById('gen-start-date').value = ymd(today);
+            }
+            if (!document.getElementById('gen-end-date').value) {
+                document.getElementById('gen-end-date').value = ymd(new Date(today.getFullYear(), 11, 31));
+            }
+
+            const backdrop = document.getElementById('generate-modal-backdrop');
+            const modal = document.getElementById('generate-modal');
+            backdrop.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave');
+            modal.classList.add('modal-enter');
+        }
+
+        function closeGenerateModal() {
+            const modal = document.getElementById('generate-modal');
+            const backdrop = document.getElementById('generate-modal-backdrop');
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-leave');
+            setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function previewGenerateSchedule() {
+            const tplId = document.getElementById('gen-template-select').value;
+            const tpl = regularTemplates.find(t => t.id === tplId);
+            if (!tpl) return Swal.fire('Perhatian', 'Pilih Master Ibadah terlebih dahulu.', 'warning');
+            if (!tpl.frequency) return Swal.fire('Perhatian', 'Master Ibadah ini belum punya pola frekuensi.', 'warning');
+
+            const startStr = document.getElementById('gen-start-date').value;
+            const endStr = document.getElementById('gen-end-date').value;
+            if (!startStr || !endStr) return Swal.fire('Perhatian', 'Isi Tanggal Mulai dan Selesai.', 'warning');
+            if (startStr > endStr) return Swal.fire('Perhatian', 'Tanggal Mulai harus sebelum Tanggal Selesai.', 'warning');
+
+            const dates = computeScheduleDates(tpl, startStr, endStr);
+            if (dates.length === 0) return Swal.fire('Info', 'Tidak ada tanggal yang cocok dengan pola frekuensi pada rentang ini.', 'info');
+
+            genActiveTemplate = tpl;
+            genPreviewList = dates.map(d => {
+                const dateStr = ymd(d);
+                const conflict = eventsData.find(ev => ev.date === dateStr && ev.eventName === tpl.name);
+                return { date: dateStr, weekday: WEEKDAY_NAMES[d.getDay()], hasConflict: !!conflict, checked: !conflict };
+            });
+
+            renderGenPreview();
+            document.getElementById('gen-preview-wrapper').classList.remove('hidden');
+            document.getElementById('gen-save-btn').classList.remove('hidden');
+        }
+
+        function renderGenPreview() {
+            const tbody = document.getElementById('gen-preview-body');
             tbody.innerHTML = '';
-
-            if (activitiesData.length === 0) {
-                emptyState.style.display = 'flex';
-                return;
-            } else {
-                emptyState.style.display = 'none';
-            }
-
-            activitiesData.forEach(act => {
+            document.getElementById('gen-preview-count').innerText = genPreviewList.length;
+            genPreviewList.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-purple-50/50 transition group';
+                tr.className = item.hasConflict ? 'bg-amber-50' : '';
                 tr.innerHTML = `
-                    <td class="p-4 align-top">
-                        <div class="font-bold text-purple-700">${act.type}</div>
-                        <div class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i> ${formatDate(act.date)}</div>
-                    </td>
-                    <td class="p-4 align-top">
-                        <div class="font-medium text-gray-900">${act.name}</div>
-                        ${act.subName ? `<div class="text-xs text-gray-500 mt-0.5">Pasangan/Anak: ${act.subName}</div>` : ''}
-                    </td>
-                    <td class="p-4 align-top text-xs text-gray-600">
-                        ${act.detailInfo || '-'}
-                    </td>
-                    <td class="p-4 align-top text-sm">
-                        <div class="text-gray-800 font-medium"><i class="fa-solid fa-user-tie text-purple-500 mr-1"></i> ${act.minister || '-'}</div>
-                        <div class="text-xs text-gray-500 mt-0.5"><span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">${act.status || 'Selesai'}</span></div>
-                    </td>
-                    <td class="p-4 align-top text-xs text-gray-500 max-w-[200px] truncate" title="${act.notes || ''}">
-                        ${act.notes || '-'}
-                    </td>
-                    <td class="p-4 align-top text-center">
-                        <div class="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition">
-                            <button type="button" onclick="editActivity('${act.id}')" class="text-purple-500 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 p-2 rounded transition cursor-pointer" title="Edit">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </button>
-                            <button type="button" onclick="confirmDeleteActivity('${act.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition cursor-pointer" title="Hapus">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
+                    <td class="p-2 text-center"><input type="checkbox" ${item.checked ? 'checked' : ''} onchange="genPreviewList[${idx}].checked = this.checked" class="w-4 h-4 text-indigo-600 cursor-pointer"></td>
+                    <td class="p-2 font-medium text-gray-700">${item.date}</td>
+                    <td class="p-2 text-gray-600">${item.weekday}</td>
+                    <td class="p-2">${item.hasConflict ? '<span class="text-amber-700 text-xs font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Sudah ada data</span>' : '<span class="text-emerald-600 text-xs font-semibold"><i class="fa-solid fa-circle-check mr-1"></i>Baru</span>'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // --- Dynamic Fields Handler untuk Kegiatan Gereja (LoV & Sesuai Kebutuhan) ---
-        function onActivityTypeChange(existingData = {}) {
-            const type = document.getElementById('act-type').value;
-            const container = document.getElementById('dynamic-activity-fields');
-            container.innerHTML = '';
-
-            if (!type) return;
-
-            let html = '';
-            if (type === 'Penyerahan Anak') {
-                html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Anak *</label>
-                            <input type="text" id="act-sub-name" required value="${existingData.subName || ''}" placeholder="Nama lengkap anak" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir Anak</label>
-                            <input type="date" id="act-detail-1" value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'Baptisan Kudus') {
-                html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Asal Agama / Gereja Sebelumnya</label>
-                            <input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" placeholder="Mis: Kristen Protestan / Umum" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tempat Baptis</label>
-                            <input type="text" id="act-detail-2" value="${existingData.detail2 || ''}" placeholder="Mis: Baptistery / Kolam Renang Gereja" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'Pemberkatan Nikah') {
-                html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pasangan (Mempelai Wanita/Pria) *</label>
-                            <input type="text" id="act-sub-name" required value="${existingData.subName || ''}" placeholder="Nama pasangan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">No. Surat Nikah Gereja / Catatan Sipil</label>
-                            <input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" placeholder="Nomor surat" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'Kedukaan & Kematian') {
-                html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Meninggal Dunia *</label>
-                            <input type="date" id="act-detail-1" required value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Pemakaman / Rumah Duka</label>
-                            <input type="text" id="act-detail-2" value="${existingData.detail2 || ''}" placeholder="Nama Rumah Duka / TPU" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                        </div>
-                    </div>
-                `;
-            } else if (type === 'Pemberkatan Rumah' || type === 'Kunjungan Kasih') {
-                html = `
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Lokasi Kunjungan / Rumah *</label>
-                        <input type="text" id="act-detail-1" required value="${existingData.detail1 || ''}" placeholder="Alamat lengkap tujuan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                    </div>
-                `;
-            } else {
-                html = `
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Detail / Keterangan Khusus</label>
-                        <input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" placeholder="Keterangan tambahan" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm">
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
+        function genToggleAll(state) {
+            genPreviewList.forEach(item => item.checked = state);
+            renderGenPreview();
         }
 
-        // --- MODAL UTILITIES ---
+        function saveGeneratedSchedule() {
+            const selected = genPreviewList.filter(i => i.checked);
+            if (selected.length === 0) return Swal.fire('Info', 'Tidak ada tanggal yang dicentang untuk disimpan.', 'info');
+
+            const doSave = () => {
+                const tpl = genActiveTemplate;
+                let added = 0, replaced = 0;
+                selected.forEach(item => {
+                    const existingIdx = eventsData.findIndex(ev => ev.date === item.date && ev.eventName === tpl.name);
+                    const newEvent = {
+                        id: existingIdx !== -1 ? eventsData[existingIdx].id : (Date.now().toString() + Math.random().toString(36).substr(2, 5)),
+                        ibadahType: 'reguler',
+                        eventStatus: 'Terjadwal',
+                        eventName: tpl.name,
+                        location: tpl.defaultLocation || '',
+                        date: item.date,
+                        time: tpl.defaultTime || '',
+                        attendance: 0, newVisitors: 0, income: 0, expense: 0,
+                        preacher: '', sermonTheme: '', wl: '', musicians: '', otherServers: '', notes: '',
+                        templateId: tpl.id
+                    };
+                    if (existingIdx !== -1) { eventsData[existingIdx] = newEvent; replaced++; }
+                    else { eventsData.push(newEvent); added++; }
+                });
+                updateUI();
+                closeGenerateModal();
+                Swal.fire('Berhasil', `Jadwal dibuat: ${added} baru${replaced > 0 ? `, ${replaced} ditimpa` : ''}.`, 'success');
+            };
+
+            const conflictCount = selected.filter(i => i.hasConflict).length;
+            if (conflictCount > 0) {
+                Swal.fire({
+                    title: 'Timpa Data Lama?',
+                    text: `${conflictCount} tanggal yang dicentang sudah punya data sebelumnya dan akan ditimpa. Lanjutkan?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4f46e5',
+                    confirmButtonText: 'Ya, Timpa & Simpan',
+                    cancelButtonText: 'Batal'
+                }).then(res => { if (res.isConfirmed) doSave(); });
+            } else {
+                doSave();
+            }
+        }
+
+        function toggleFinanceAttendanceFields() {
+            const status = document.getElementById('form-event-status').value;
+            const lock = status === 'Terjadwal';
+            const fieldIds = ['form-attendance', 'form-new-visitors', 'form-income', 'form-expense'];
+            fieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = lock;
+                el.classList.toggle('bg-gray-100', lock);
+                el.classList.toggle('text-gray-400', lock);
+                el.classList.toggle('cursor-not-allowed', lock);
+                if (lock) { el.placeholder = 'Isi setelah terlaksana'; } else { el.placeholder = '0'; }
+            });
+            const hint = document.getElementById('finance-lock-hint');
+            if (hint) hint.classList.toggle('hidden', !lock);
+        }
+
+        function toggleFormType() {
+            const type = document.querySelector('input[name="form-type"]:checked').value;
+            const tplContainer = document.getElementById('template-selector-group');
+            const nameInput = document.getElementById('form-event-name');
+            const locInput = document.getElementById('form-location');
+            const timeInput = document.getElementById('form-time');
+
+            if (type === 'reguler') {
+                tplContainer.classList.remove('hidden');
+                nameInput.readOnly = true;
+                nameInput.classList.add('bg-gray-100', 'text-gray-600', 'cursor-not-allowed');
+                populateTemplateDropdown();
+            } else {
+                tplContainer.classList.add('hidden');
+                nameInput.readOnly = false;
+                nameInput.classList.remove('bg-gray-100', 'text-gray-600', 'cursor-not-allowed');
+                if (!document.getElementById('form-id').value) {
+                    nameInput.value = '';
+                    locInput.value = '';
+                    timeInput.value = '';
+                }
+            }
+        }
+
+        function populateTemplateDropdown() {
+            const select = document.getElementById('form-template-id');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Pilih Master Ibadah Reguler --</option>';
+            regularTemplates.forEach(tpl => {
+                const opt = document.createElement('option');
+                opt.value = tpl.id;
+                opt.text = tpl.name;
+                select.appendChild(opt);
+            });
+            if(currentVal) select.value = currentVal;
+        }
+
+        function applyTemplateData() {
+            const tplId = document.getElementById('form-template-id').value;
+            if (!tplId) { populateScheduledDates(); return; }
+            const tpl = regularTemplates.find(t => t.id === tplId);
+            if (tpl) {
+                document.getElementById('form-event-name').value = tpl.name;
+                document.getElementById('form-location').value = tpl.defaultLocation || '';
+                document.getElementById('form-time').value = tpl.defaultTime || '';
+            }
+            populateScheduledDates();
+        }
+
+        function populateScheduledDates() {
+            const group = document.getElementById('scheduled-date-group');
+            const select = document.getElementById('form-scheduled-date');
+            const tplId = document.getElementById('form-template-id').value;
+            const currentFormId = document.getElementById('form-id').value;
+
+            if (currentFormId || !tplId) {
+                group.classList.add('hidden');
+                return;
+            }
+
+            const tpl = regularTemplates.find(t => t.id === tplId);
+            if (!tpl) { group.classList.add('hidden'); return; }
+
+            const scheduled = eventsData
+                .filter(ev => ev.ibadahType === 'reguler' && ev.eventStatus === 'Terjadwal' && ev.eventName === tpl.name)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (scheduled.length === 0) {
+                group.classList.add('hidden');
+                const dateInput = document.getElementById('form-date');
+                dateInput.readOnly = false;
+                dateInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                return;
+            }
+
+            select.innerHTML = '<option value="">-- Tanggal Baru (Belum Ada di Jadwal) --</option>';
+            scheduled.forEach(ev => {
+                const opt = document.createElement('option');
+                opt.value = ev.id;
+                opt.text = `${formatDate(ev.date)}${ev.time ? ' • ' + ev.time : ''}`;
+                select.appendChild(opt);
+            });
+            select.value = scheduled[0].id;
+            group.classList.remove('hidden');
+            applyScheduledDate();
+        }
+
+        function applyScheduledDate() {
+            const select = document.getElementById('form-scheduled-date');
+            const val = select.value;
+            const dateInput = document.getElementById('form-date');
+            const timeInput = document.getElementById('form-time');
+            const formIdInput = document.getElementById('form-id');
+
+            if (!val) {
+                formIdInput.value = '';
+                dateInput.readOnly = false;
+                dateInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                dateInput.value = '';
+                document.getElementById('modal-title').innerText = 'Tambah Laporan Ibadah';
+                return;
+            }
+
+            const ev = eventsData.find(e => e.id === val);
+            if (ev) {
+                formIdInput.value = ev.id;
+                dateInput.value = ev.date;
+                if (ev.time) timeInput.value = ev.time;
+                dateInput.readOnly = true;
+                dateInput.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                document.getElementById('modal-title').innerText = 'Lengkapi Laporan Ibadah (Terjadwal)';
+            }
+        }
+
         function addOtherServerField(role = '', name = '') {
             const container = document.getElementById('other-servers-container');
-            if (!container) return;
             const row = document.createElement('div');
             row.className = 'flex gap-2 other-server-row items-center mt-2';
             row.innerHTML = `
@@ -950,18 +1443,27 @@
             `;
             container.appendChild(row);
         }
+        document.getElementById('btn-tambah-pelayan').addEventListener('click', (e) => { e.preventDefault(); addOtherServerField(); });
 
-        document.getElementById('btn-tambah-pelayan').addEventListener('click', function(e) {
-            e.preventDefault();
-            addOtherServerField('', '');
-        });
-
-        function openModal() {
+        function openModal(defaultType = 'adhoc') {
             document.getElementById('data-form').reset();
             document.getElementById('form-id').value = '';
             document.getElementById('modal-title').innerText = 'Tambah Laporan Ibadah';
             document.getElementById('other-servers-container').innerHTML = '';
+
+            document.getElementById('scheduled-date-group').classList.add('hidden');
+            const dateInput = document.getElementById('form-date');
+            dateInput.readOnly = false;
+            dateInput.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+
+            toggleFinanceAttendanceFields();
             
+            const radio = document.querySelector(`input[name="form-type"][value="${defaultType}"]`);
+            if(radio) {
+                radio.checked = true;
+                toggleFormType();
+            }
+
             const backdrop = document.getElementById('modal-backdrop');
             const modal = document.getElementById('modal');
             backdrop.classList.remove('hidden');
@@ -978,31 +1480,17 @@
             setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
         }
 
-        function openActivityModal() {
-            document.getElementById('activity-form').reset();
-            document.getElementById('act-form-id').value = '';
-            document.getElementById('activity-modal-title').innerText = 'Tambah Kegiatan Gereja';
-            document.getElementById('dynamic-activity-fields').innerHTML = '';
-            
-            const backdrop = document.getElementById('activity-modal-backdrop');
-            const modal = document.getElementById('activity-modal');
-            backdrop.classList.remove('hidden');
-            modal.classList.remove('hidden');
-            modal.classList.remove('modal-leave');
-            modal.classList.add('modal-enter');
-        }
-
-        function closeActivityModal() {
-            const modal = document.getElementById('activity-modal');
-            const backdrop = document.getElementById('activity-modal-backdrop');
-            modal.classList.remove('modal-enter');
-            modal.classList.add('modal-leave');
-            setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
-        }
-
-        // --- SAVE DATA HANDLERS ---
         function saveData(e) {
             e.preventDefault();
+            const typeRadio = document.querySelector('input[name="form-type"]:checked').value;
+            const tplId = document.getElementById('form-template-id').value;
+            const eventStatus = document.getElementById('form-event-status').value;
+            
+            if (typeRadio === 'reguler' && !tplId) {
+                Swal.fire('Perhatian', 'Silakan pilih Master Ibadah Reguler dari dropdown terlebih dahulu.', 'warning');
+                return;
+            }
+
             const serverRows = document.querySelectorAll('.other-server-row');
             let otherServersArray = [];
             serverRows.forEach(row => {
@@ -1018,6 +1506,8 @@
             const id = document.getElementById('form-id').value;
             const newData = {
                 id: id ? id : Date.now().toString(),
+                ibadahType: typeRadio,
+                eventStatus: eventStatus,
                 eventName: document.getElementById('form-event-name').value,
                 location: document.getElementById('form-location').value,
                 date: document.getElementById('form-date').value,
@@ -1047,61 +1537,113 @@
             updateUI();
         }
 
-        function saveActivity(e) {
-            e.preventDefault();
-            const id = document.getElementById('act-form-id').value;
-            const type = document.getElementById('act-type').value;
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const emptyState = document.getElementById('empty-state');
+            tbody.innerHTML = '';
             
-            const subNameEl = document.getElementById('act-sub-name');
-            const detail1El = document.getElementById('act-detail-1');
-            const detail2El = document.getElementById('act-detail-2');
-
-            let detailInfoSummary = '';
-            if (type === 'Penyerahan Anak') {
-                detailInfoSummary = `Anak: ${subNameEl ? subNameEl.value : '-'} (Lahir: ${detail1El ? detail1El.value : '-'})`;
-            } else if (type === 'Baptisan Kudus') {
-                detailInfoSummary = `Asal: ${detail1El ? detail1El.value : '-'} | Tempat: ${detail2El ? detail2El.value : '-'}`;
-            } else if (type === 'Pemberkatan Nikah') {
-                detailInfoSummary = `Pasangan: ${subNameEl ? subNameEl.value : '-'} | Surat: ${detail1El ? detail1El.value : '-'}`;
-            } else if (type === 'Kedukaan & Kematian') {
-                detailInfoSummary = `Wafat: ${detail1El ? detail1El.value : '-'} | Pemakaman: ${detail2El ? detail2El.value : '-'}`;
-            } else {
-                detailInfoSummary = detail1El ? detail1El.value : '-';
+            const filterValue = document.getElementById('month-filter').value;
+            let filteredEvents = eventsData;
+            if (filterValue !== 'all') {
+                filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
             }
 
-            const newActivity = {
-                id: id ? id : Date.now().toString(),
-                type: type,
-                name: document.getElementById('act-name').value,
-                subName: subNameEl ? subNameEl.value : '',
-                detail1: detail1El ? detail1El.value : '',
-                detail2: detail2El ? detail2El.value : '',
-                detailInfo: detailInfoSummary,
-                date: document.getElementById('act-date').value,
-                minister: document.getElementById('act-minister').value,
-                status: document.getElementById('act-status').value,
-                notes: document.getElementById('act-notes').value
-            };
-
-            if (id) {
-                const index = activitiesData.findIndex(item => item.id === id);
-                if (index !== -1) activitiesData[index] = newActivity;
-                Swal.fire({ title: 'Berhasil', text: 'Kegiatan pastoral diupdate.', icon: 'success', timer: 1200, showConfirmButton: false });
+            if (filteredEvents.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
             } else {
-                activitiesData.push(newActivity);
-                Swal.fire({ title: 'Berhasil', text: 'Kegiatan pastoral ditambahkan.', icon: 'success', timer: 1200, showConfirmButton: false });
+                emptyState.style.display = 'none';
             }
 
-            closeActivityModal();
-            updateUI();
+            filteredEvents.forEach(item => {
+                const isScheduled = item.eventStatus === 'Terjadwal';
+                const income = parseInt(item.income) || 0;
+                const expense = parseInt(item.expense) || 0;
+                const net = income - expense;
+                
+                const isReg = item.ibadahType === 'reguler';
+                const badgeColor = isReg ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200';
+                const badgeText = isReg ? 'Reguler' : 'Adhoc';
+
+                const statusBadge = isScheduled 
+                    ? `<span class="mt-2 inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200"><i class="fa-regular fa-calendar-clock mr-1"></i> Program (Terjadwal)</span>`
+                    : `<span class="mt-2 inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-check-double mr-1"></i> Selesai</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = `transition group ${isScheduled ? 'bg-amber-50/30 hover:bg-amber-50' : 'hover:bg-blue-50/50'}`;
+                tr.innerHTML = `
+                    <td class="p-4 align-top">
+                        <div class="font-medium text-gray-800">${formatDate(item.date)}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-clock mr-1 w-3 text-center"></i> ${item.time || '-'}</div>
+                        <div class="text-xs text-gray-500 mt-1 truncate max-w-[150px]" title="${item.location || '-'}"><i class="fa-solid fa-location-dot mr-1 w-3 text-center"></i> ${item.location || '-'}</div>
+                        ${statusBadge}
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-gray-900">${item.eventName}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded border font-semibold ${badgeColor}">${badgeText}</span>
+                        </div>
+                        ${item.sermonTheme ? `<div class="text-xs text-gray-600"><i class="fa-solid fa-book-bible mr-1 text-slate-400 w-3 text-center"></i> ${item.sermonTheme}</div>` : ''}
+                    </td>
+                    <td class="p-4 align-top text-center">
+                        ${isScheduled ? `<span class="text-xs italic text-gray-400">Menunggu Pelaksanaan</span>` : `
+                        <div class="text-sm font-bold text-gray-800 bg-gray-100 rounded-full px-2.5 py-1 inline-block mb-1">${(parseInt(item.attendance)||0).toLocaleString('id-ID')} Total</div>
+                        ${(parseInt(item.newVisitors)||0) > 0 ? `<div class="text-xs font-semibold text-emerald-600">${item.newVisitors} Baru</div>` : ''}
+                        `}
+                    </td>
+                    <td class="p-4 align-top text-right">
+                        ${isScheduled ? `<span class="text-xs italic text-gray-400">-</span>` : `
+                        <div class="text-xs font-medium text-emerald-600">+ ${formatCurrency(income)}</div>
+                        <div class="text-xs font-medium text-red-600">- ${formatCurrency(expense)}</div>
+                        <div class="text-xs font-bold ${net >= 0 ? 'text-blue-600' : 'text-red-600'} mt-1 border-t border-gray-100 pt-1">= ${formatCurrency(net)}</div>
+                        `}
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="text-sm space-y-1">
+                            ${item.preacher ? `<div class="text-gray-800 font-medium"><i class="fa-solid fa-microphone text-blue-500 mr-1 w-4 text-center"></i> ${item.preacher}</div>` : (isScheduled ? '' : '<div class="text-gray-400 italic text-xs">Tanpa Khotbah</div>')}
+                            ${item.wl ? `<div class="text-gray-600 text-xs"><i class="fa-solid fa-music text-amber-500 mr-1 w-4 text-center"></i> WL: ${item.wl}</div>` : ''}
+                            ${item.musicians ? `<div class="text-gray-500 text-xs"><i class="fa-solid fa-guitar text-gray-400 mr-1 w-4 text-center"></i> Musik: ${item.musicians}</div>` : ''}
+                        </div>
+                    </td>
+                    <td class="p-4 align-top text-center">
+                        <div class="flex flex-col items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition">
+                            ${isScheduled 
+                                ? `<button type="button" onclick="editData('${item.id}')" class="text-amber-600 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer shadow-sm w-full"><i class="fa-solid fa-clipboard-check mr-1"></i> Lengkapi</button>`
+                                : `<button type="button" onclick="editData('${item.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded transition cursor-pointer" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>`
+                            }
+                            <button type="button" onclick="confirmDelete('${item.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition cursor-pointer" title="Hapus">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        // --- EDIT & DELETE HANDLERS ---
         function editData(id) {
             const data = eventsData.find(item => item.id === id);
             if (!data) return;
 
             document.getElementById('form-id').value = data.id;
+            
+            const type = data.ibadahType || 'adhoc';
+            const radio = document.querySelector(`input[name="form-type"][value="${type}"]`);
+            if(radio) radio.checked = true;
+            toggleFormType();
+
+            if(type === 'reguler') {
+                const tpl = regularTemplates.find(t => t.name === data.eventName);
+                if(tpl) document.getElementById('form-template-id').value = tpl.id;
+            }
+
+            document.getElementById('scheduled-date-group').classList.add('hidden');
+            const dateInputEdit = document.getElementById('form-date');
+            dateInputEdit.readOnly = false;
+            dateInputEdit.classList.remove('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+
+            document.getElementById('form-event-status').value = data.eventStatus || 'Selesai';
+            toggleFinanceAttendanceFields();
             document.getElementById('form-event-name').value = data.eventName || '';
             document.getElementById('form-location').value = data.location || '';
             document.getElementById('form-date').value = data.date || '';
@@ -1137,29 +1679,6 @@
             modal.classList.add('modal-enter');
         }
 
-        function editActivity(id) {
-            const act = activitiesData.find(item => item.id === id);
-            if (!act) return;
-
-            document.getElementById('act-form-id').value = act.id;
-            document.getElementById('act-type').value = act.type || '';
-            document.getElementById('act-name').value = act.name || '';
-            document.getElementById('act-date').value = act.date || '';
-            document.getElementById('act-minister').value = act.minister || '';
-            document.getElementById('act-status').value = act.status || '';
-            document.getElementById('act-notes').value = act.notes || '';
-
-            onActivityTypeChange({ subName: act.subName, detail1: act.detail1, detail2: act.detail2 });
-
-            document.getElementById('activity-modal-title').innerText = 'Edit Kegiatan Gereja';
-            const backdrop = document.getElementById('activity-modal-backdrop');
-            const modal = document.getElementById('activity-modal');
-            backdrop.classList.remove('hidden');
-            modal.classList.remove('hidden');
-            modal.classList.remove('modal-leave');
-            modal.classList.add('modal-enter');
-        }
-
         function confirmDelete(id) {
             Swal.fire({
                 title: 'Hapus data ibadah?',
@@ -1178,70 +1697,155 @@
             });
         }
 
-        function confirmDeleteActivity(id) {
-            Swal.fire({
-                title: 'Hapus kegiatan?',
-                text: "Data tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    activitiesData = activitiesData.filter(item => item.id !== id);
-                    updateUI();
-                    Swal.fire('Terhapus!', 'Kegiatan pastoral dihapus.', 'success');
-                }
+        function openActivityModal() {
+            document.getElementById('activity-form').reset();
+            document.getElementById('act-form-id').value = '';
+            document.getElementById('activity-modal-title').innerText = 'Tambah Kegiatan Gereja';
+            document.getElementById('dynamic-activity-fields').innerHTML = '';
+            
+            const backdrop = document.getElementById('activity-modal-backdrop');
+            const modal = document.getElementById('activity-modal');
+            backdrop.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.remove('modal-leave');
+            modal.classList.add('modal-enter');
+        }
+
+        function closeActivityModal() {
+            const modal = document.getElementById('activity-modal');
+            const backdrop = document.getElementById('activity-modal-backdrop');
+            modal.classList.remove('modal-enter');
+            modal.classList.add('modal-leave');
+            setTimeout(() => { backdrop.classList.add('hidden'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function onActivityTypeChange(existingData = {}) {
+            const type = document.getElementById('act-type').value;
+            const container = document.getElementById('dynamic-activity-fields');
+            container.innerHTML = '';
+            if (!type) return;
+
+            let html = '';
+            if (type === 'Penyerahan Anak') {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Nama Anak *</label><input type="text" id="act-sub-name" required value="${existingData.subName || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Lahir Anak</label><input type="date" id="act-detail-1" value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div></div>`;
+            } else if (type === 'Baptisan Kudus') {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Asal Agama / Gereja</label><input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Tempat Baptis</label><input type="text" id="act-detail-2" value="${existingData.detail2 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div></div>`;
+            } else if (type === 'Pemberkatan Nikah') {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Nama Pasangan *</label><input type="text" id="act-sub-name" required value="${existingData.subName || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">No. Surat Nikah</label><input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div></div>`;
+            } else if (type === 'Kedukaan & Kematian') {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">Tgl Meninggal *</label><input type="date" id="act-detail-1" required value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Pemakaman</label><input type="text" id="act-detail-2" value="${existingData.detail2 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div></div>`;
+            } else if (type === 'Pemberkatan Rumah' || type === 'Kunjungan Kasih') {
+                html = `<div><label class="block text-sm font-medium text-gray-700 mb-1">Alamat Tujuan *</label><input type="text" id="act-detail-1" required value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div>`;
+            } else {
+                html = `<div><label class="block text-sm font-medium text-gray-700 mb-1">Detail Tambahan</label><input type="text" id="act-detail-1" value="${existingData.detail1 || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm"></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function saveActivity(e) {
+            e.preventDefault();
+            const id = document.getElementById('act-form-id').value;
+            const type = document.getElementById('act-type').value;
+            const subNameEl = document.getElementById('act-sub-name');
+            const detail1El = document.getElementById('act-detail-1');
+            const detail2El = document.getElementById('act-detail-2');
+
+            let detailInfoSummary = '';
+            if (type === 'Penyerahan Anak') detailInfoSummary = `Anak: ${subNameEl?.value || '-'} (Lahir: ${detail1El?.value || '-'})`;
+            else if (type === 'Baptisan Kudus') detailInfoSummary = `Asal: ${detail1El?.value || '-'} | Tmpt: ${detail2El?.value || '-'}`;
+            else if (type === 'Pemberkatan Nikah') detailInfoSummary = `Pasangan: ${subNameEl?.value || '-'} | Surat: ${detail1El?.value || '-'}`;
+            else if (type === 'Kedukaan & Kematian') detailInfoSummary = `Wafat: ${detail1El?.value || '-'} | Makam: ${detail2El?.value || '-'}`;
+            else detailInfoSummary = detail1El?.value || '-';
+
+            const newActivity = {
+                id: id ? id : Date.now().toString(),
+                type, name: document.getElementById('act-name').value,
+                subName: subNameEl?.value || '', detail1: detail1El?.value || '', detail2: detail2El?.value || '',
+                detailInfo: detailInfoSummary, date: document.getElementById('act-date').value,
+                minister: document.getElementById('act-minister').value, status: document.getElementById('act-status').value,
+                notes: document.getElementById('act-notes').value
+            };
+
+            const index = activitiesData.findIndex(item => item.id === id);
+            if (index !== -1) activitiesData[index] = newActivity;
+            else activitiesData.push(newActivity);
+
+            Swal.fire({ title: 'Berhasil', text: 'Kegiatan tersimpan.', icon: 'success', timer: 1200, showConfirmButton: false });
+            closeActivityModal(); updateUI();
+        }
+
+        function renderActivityTable() {
+            const tbody = document.getElementById('activity-table-body');
+            const emptyState = document.getElementById('activity-empty-state');
+            tbody.innerHTML = '';
+            if (activitiesData.length === 0) { emptyState.style.display = 'flex'; return; } 
+            else { emptyState.style.display = 'none'; }
+
+            activitiesData.forEach(act => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-purple-50/50 transition group';
+                tr.innerHTML = `
+                    <td class="p-4 align-top">
+                        <div class="font-bold text-purple-700">${act.type}</div>
+                        <div class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-calendar mr-1"></i> ${formatDate(act.date)}</div>
+                    </td>
+                    <td class="p-4 align-top">
+                        <div class="font-medium text-gray-900">${act.name}</div>
+                        ${act.subName ? `<div class="text-xs text-gray-500 mt-0.5">Sub: ${act.subName}</div>` : ''}
+                    </td>
+                    <td class="p-4 align-top text-xs text-gray-600">${act.detailInfo || '-'}</td>
+                    <td class="p-4 align-top text-sm">
+                        <div class="text-gray-800 font-medium"><i class="fa-solid fa-user-tie text-purple-500 mr-1"></i> ${act.minister || '-'}</div>
+                        <div class="text-xs mt-1"><span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">${act.status || 'Selesai'}</span></div>
+                    </td>
+                    <td class="p-4 align-top text-xs text-gray-500 max-w-[200px] truncate" title="${act.notes || ''}">${act.notes || '-'}</td>
+                    <td class="p-4 align-top text-center">
+                        <div class="flex items-center justify-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition">
+                            <button onclick="editActivity('${act.id}')" class="text-purple-500 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 p-2 rounded transition" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="confirmDeleteActivity('${act.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded transition" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
+        }
+        function editActivity(id) {
+            const act = activitiesData.find(i => i.id === id);
+            if (!act) return;
+            document.getElementById('act-form-id').value = act.id;
+            ['type','name','date','minister','status','notes'].forEach(k => document.getElementById(`act-${k}`).value = act[k] || '');
+            onActivityTypeChange({ subName: act.subName, detail1: act.detail1, detail2: act.detail2 });
+            document.getElementById('activity-modal-title').innerText = 'Edit Kegiatan';
+            
+            const b = document.getElementById('activity-modal-backdrop'); const m = document.getElementById('activity-modal');
+            b.classList.remove('hidden'); m.classList.remove('hidden', 'modal-leave'); m.classList.add('modal-enter');
+        }
+        function confirmDeleteActivity(id) {
+            Swal.fire({ title: 'Hapus kegiatan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, hapus!' })
+            .then((r) => { if (r.isConfirmed) { activitiesData = activitiesData.filter(i => i.id !== id); updateUI(); } });
         }
 
         function clearAllData() {
             if (eventsData.length === 0) return;
-            Swal.fire({
-                title: 'Kosongkan Semua Ibadah?',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Kosongkan!',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    eventsData = [];
-                    updateUI();
-                    Swal.fire('Dikosongkan!', '', 'success');
-                }
-            });
+            Swal.fire({ title: 'Kosongkan Laporan Ibadah?', text:'Master Data tidak akan terhapus.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Kosongkan!' })
+            .then(res => { if (res.isConfirmed) { eventsData = []; updateUI(); Swal.fire('Dikosongkan!', '', 'success'); } });
         }
-
         function clearAllActivities() {
             if (activitiesData.length === 0) return;
-            Swal.fire({
-                title: 'Kosongkan Semua Kegiatan?',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Ya, Kosongkan!',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    activitiesData = [];
-                    updateUI();
-                    Swal.fire('Dikosongkan!', '', 'success');
-                }
-            });
+            Swal.fire({ title: 'Kosongkan Kegiatan?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya!' })
+            .then(res => { if (res.isConfirmed) { activitiesData = []; updateUI(); Swal.fire('Dikosongkan!', '', 'success'); } });
         }
 
-        // --- EXPORT & IMPORT EXCEL (2 Sheets Sekaligus) ---
         function exportAllToExcel() {
             if (eventsData.length === 0 && activitiesData.length === 0) {
-                Swal.fire('Info', 'Tidak ada data untuk diexport.', 'warning');
-                return;
+                Swal.fire('Info', 'Tidak ada data untuk diexport.', 'warning'); return;
             }
-
             const workbook = XLSX.utils.book_new();
 
-            // Sheet 1: Laporan Ibadah
             const sheet1Data = eventsData.map(item => ({
                 'ID (Jangan Diubah)': item.id,
+                'Kategori': item.ibadahType === 'reguler' ? 'Reguler' : 'Spesial',
+                'Status': item.eventStatus === 'Terjadwal' ? 'Terjadwal' : 'Selesai',
                 'Tanggal': item.date,
                 'Waktu': item.time || '',
                 'Nama Acara': item.eventName,
@@ -1260,33 +1864,20 @@
             const ws1 = XLSX.utils.json_to_sheet(sheet1Data);
             XLSX.utils.book_append_sheet(workbook, ws1, "Laporan Ibadah");
 
-            // Sheet 2: Kegiatan Gereja
             const sheet2Data = activitiesData.map(act => ({
-                'ID (Jangan Diubah)': act.id,
-                'Jenis Kegiatan': act.type,
-                'Nama Jemaat / Keluarga': act.name,
-                'Nama Sub / Pasangan / Anak': act.subName || '',
-                'Detail Khusus 1': act.detail1 || '',
-                'Detail Khusus 2': act.detail2 || '',
-                'Tanggal': act.date,
-                'Pendeta / Pelayan': act.minister || '',
-                'Status': act.status || '',
-                'Catatan': act.notes || ''
+                'ID (Jangan Diubah)': act.id, 'Jenis Kegiatan': act.type, 'Nama Jemaat / Keluarga': act.name,
+                'Nama Sub / Pasangan / Anak': act.subName || '', 'Detail Khusus 1': act.detail1 || '', 'Detail Khusus 2': act.detail2 || '',
+                'Tanggal': act.date, 'Pendeta / Pelayan': act.minister || '', 'Status': act.status || '', 'Catatan': act.notes || ''
             }));
             const ws2 = XLSX.utils.json_to_sheet(sheet2Data);
             XLSX.utils.book_append_sheet(workbook, ws2, "Kegiatan Gereja");
 
-            XLSX.writeFile(workbook, `${churchName.replace(/\s+/g, '_')}_Laporan_Lengkap_Gereja.xlsx`);
+            XLSX.writeFile(workbook, `${churchName.replace(/\s+/g, '_')}_Laporan.xlsx`);
         }
 
         function excelValueToYMD(val) {
             if (!val) return '';
-            if (val instanceof Date) {
-                const y = val.getFullYear();
-                const m = String(val.getMonth() + 1).padStart(2, '0');
-                const d = String(val.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
+            if (val instanceof Date) return `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
             if (typeof val === 'number') {
                 const date = new Date(Math.round((val - 25569) * 86400 * 1000));
                 return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
@@ -1294,16 +1885,13 @@
             const str = val.toString().trim();
             if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
             const parsed = new Date(str);
-            if (!isNaN(parsed)) {
-                return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
-            }
+            if (!isNaN(parsed)) return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
             return str;
         }
 
         function importAllFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             Swal.fire({ title: 'Memproses file...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
@@ -1311,170 +1899,110 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array', cellDates: true});
-                    
-                    let importedEvents = 0;
-                    let importedActivities = 0;
+                    let importedEvents = 0; let importedActivities = 0;
 
-                    // Baca Sheet 1: Laporan Ibadah jika ada
                     if (workbook.SheetNames.includes("Laporan Ibadah")) {
-                        const ws1 = workbook.Sheets["Laporan Ibadah"];
-                        const json1 = XLSX.utils.sheet_to_json(ws1);
-                        json1.forEach(row => {
+                        XLSX.utils.sheet_to_json(workbook.Sheets["Laporan Ibadah"]).forEach(row => {
                             if (row['Nama Acara'] && row['Tanggal']) {
-                                const id = row['ID (Jangan Diubah)'] ? row['ID (Jangan Diubah)'].toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                                const id = row['ID (Jangan Diubah)']?.toString() || Date.now().toString() + Math.random().toString(36).substr(2, 5);
                                 const item = {
                                     id,
-                                    eventName: row['Nama Acara'],
-                                    location: row['Lokasi'] || '',
-                                    date: excelValueToYMD(row['Tanggal']),
-                                    time: row['Waktu'] ? row['Waktu'].toString() : '',
-                                    attendance: row['Total Kehadiran'] || 0,
-                                    newVisitors: row['Jemaat Baru'] || 0,
-                                    income: row['Penerimaan (Rp)'] || 0,
-                                    expense: row['Pengeluaran (Rp)'] || 0,
-                                    preacher: row['Pengkhotbah'] || '',
-                                    sermonTheme: row['Tema Khotbah'] || '',
-                                    wl: row['Worship Leader'] || '',
-                                    musicians: row['Pemusik'] || '',
-                                    otherServers: row['Pelayan Lainnya'] || '',
-                                    notes: row['Catatan'] || ''
+                                    ibadahType: (row['Kategori'] && row['Kategori'].toLowerCase() === 'reguler') ? 'reguler' : 'adhoc',
+                                    eventStatus: (row['Status'] && row['Status'] === 'Terjadwal') ? 'Terjadwal' : 'Selesai',
+                                    eventName: row['Nama Acara'], location: row['Lokasi'] || '', date: excelValueToYMD(row['Tanggal']),
+                                    time: row['Waktu']?.toString() || '', attendance: row['Total Kehadiran'] || 0, newVisitors: row['Jemaat Baru'] || 0,
+                                    income: row['Penerimaan (Rp)'] || 0, expense: row['Pengeluaran (Rp)'] || 0, preacher: row['Pengkhotbah'] || '',
+                                    sermonTheme: row['Tema Khotbah'] || '', wl: row['Worship Leader'] || '', musicians: row['Pemusik'] || '',
+                                    otherServers: row['Pelayan Lainnya'] || '', notes: row['Catatan'] || ''
                                 };
                                 const idx = eventsData.findIndex(d => d.id === id);
-                                if (idx !== -1) eventsData[idx] = item;
-                                else eventsData.push(item);
+                                if (idx !== -1) eventsData[idx] = item; else eventsData.push(item);
                                 importedEvents++;
                             }
                         });
                     }
 
-                    // Baca Sheet 2: Kegiatan Gereja jika ada
                     if (workbook.SheetNames.includes("Kegiatan Gereja")) {
-                        const ws2 = workbook.Sheets["Kegiatan Gereja"];
-                        const json2 = XLSX.utils.sheet_to_json(ws2);
-                        json2.forEach(row => {
+                        XLSX.utils.sheet_to_json(workbook.Sheets["Kegiatan Gereja"]).forEach(row => {
                             if (row['Jenis Kegiatan'] && row['Nama Jemaat / Keluarga']) {
-                                const id = row['ID (Jangan Diubah)'] ? row['ID (Jangan Diubah)'].toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5);
+                                const id = row['ID (Jangan Diubah)']?.toString() || Date.now().toString() + Math.random().toString(36).substr(2, 5);
                                 const act = {
-                                    id,
-                                    type: row['Jenis Kegiatan'],
-                                    name: row['Nama Jemaat / Keluarga'],
-                                    subName: row['Nama Sub / Pasangan / Anak'] || '',
-                                    detail1: row['Detail Khusus 1'] || '',
-                                    detail2: row['Detail Khusus 2'] || '',
-                                    detailInfo: row['Detail Khusus 1'] || '',
-                                    date: excelValueToYMD(row['Tanggal']),
-                                    minister: row['Pendeta / Pelayan'] || '',
-                                    status: row['Status'] || 'Selesai',
-                                    notes: row['Catatan'] || ''
+                                    id, type: row['Jenis Kegiatan'], name: row['Nama Jemaat / Keluarga'], subName: row['Nama Sub / Pasangan / Anak'] || '',
+                                    detail1: row['Detail Khusus 1'] || '', detail2: row['Detail Khusus 2'] || '', detailInfo: row['Detail Khusus 1'] || '',
+                                    date: excelValueToYMD(row['Tanggal']), minister: row['Pendeta / Pelayan'] || '', status: row['Status'] || 'Selesai', notes: row['Catatan'] || ''
                                 };
                                 const idx = activitiesData.findIndex(d => d.id === id);
-                                if (idx !== -1) activitiesData[idx] = act;
-                                else activitiesData.push(act);
+                                if (idx !== -1) activitiesData[idx] = act; else activitiesData.push(act);
                                 importedActivities++;
                             }
                         });
                     }
 
                     updateUI();
-                    Swal.fire('Berhasil Import', `Berhasil memuat ${importedEvents} data ibadah dan ${importedActivities} kegiatan gereja.`, 'success');
+                    Swal.fire('Berhasil', `Import: ${importedEvents} Ibadah, ${importedActivities} Kegiatan.`, 'success');
                 } catch (err) {
-                    console.error(err);
-                    Swal.fire('Gagal Import', 'Pastikan format file Excel sesuai dengan template 2 sheet.', 'error');
+                    Swal.fire('Gagal', 'Pastikan format file Excel sesuai dengan template.', 'error');
                 }
                 event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // --- EXPORT PDF LAPORAN ---
         function generatePDFReport() {
-            const filterValue = document.getElementById('month-filter').value;
-            const filterText = document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text;
-            
-            let filteredEvents = eventsData;
-            if (filterValue !== 'all') {
-                filteredEvents = eventsData.filter(item => item.date && item.date.startsWith(filterValue));
-            }
+            const fVal = document.getElementById('month-filter').value;
+            const fText = document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text;
+            let fEvents = eventsData;
+            if (fVal !== 'all') fEvents = eventsData.filter(i => i.date && i.date.startsWith(fVal));
+            if (fEvents.length === 0) return Swal.fire('Info', 'Tidak ada data untuk dicetak.', 'info');
 
-            if (filteredEvents.length === 0) {
-                Swal.fire('Info', 'Tidak ada data pada periode ini untuk dicetak.', 'info');
-                return;
-            }
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(30, 58, 138);
+            doc.text(`LAPORAN RESMI IBADAH & ANALISIS`, 14, 20);
+            doc.setFontSize(12); doc.setTextColor(80, 80, 80); doc.text(`${churchName}`, 14, 27);
+            doc.setFontSize(10); doc.setFont("helvetica", "normal");
+            doc.text(`Periode: ${fText} | Dicetak: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date())}`, 14, 34);
+            doc.setDrawColor(200, 200, 200); doc.line(14, 38, 196, 38);
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(16);
-            doc.setTextColor(30, 58, 138);
-            doc.text(`LAPORAN RESMI IBADAH & ANALISIS SPIRITUAL`, 14, 20);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(80, 80, 80);
-            doc.text(`${churchName}`, 14, 27);
+            doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("1. Ringkasan & Analisis Pelayanan", 14, 46);
+            doc.setFontSize(9); doc.setFont("helvetica", "normal");
+            doc.text(`• Total Kehadiran: ${currentAnalyticsData.totalAttendance.toLocaleString('id-ID')} jiwa (${currentAnalyticsData.totalNewVisitors} baru)`, 14, 53);
+            doc.text(`• Total Penerimaan: ${formatCurrency(currentAnalyticsData.totalIncome)} (Net: ${formatCurrency(currentAnalyticsData.netFinance)})`, 14, 60);
 
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Periode: ${filterText} | Dicetak: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date())}`, 14, 34);
-
-            doc.setDrawColor(200, 200, 200);
-            doc.line(14, 38, 196, 38);
-
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.text("1. Ringkasan & Analisis Sinergi Pelayanan", 14, 46);
-
-            doc.setFontSize(9);
-            doc.setFont("helvetica", "normal");
-            doc.text(`• Total Kehadiran Jemaat : ${currentAnalyticsData.totalAttendance.toLocaleString('id-ID')} jiwa (${currentAnalyticsData.totalNewVisitors} jemaat baru)`, 14, 53);
-            doc.text(`• Total Penerimaan       : ${formatCurrency(currentAnalyticsData.totalIncome)} (Net: ${formatCurrency(currentAnalyticsData.netFinance)})`, 14, 60);
-            doc.text(`• Pengkhotbah Utama      : ${currentAnalyticsData.topPreacher}`, 14, 67);
-            doc.text(`• Worship Leader Utama   : ${currentAnalyticsData.topWL}`, 14, 74);
-
-            let yPos = 82;
-            if (currentAnalyticsData.suggestionPoints && currentAnalyticsData.suggestionPoints.length > 0) {
-                currentAnalyticsData.suggestionPoints.forEach(point => {
-                    const lines = doc.splitTextToSize(`• ${point}`, 180);
-                    doc.text(lines, 14, yPos);
-                    yPos += (lines.length * 5) + 2;
+            let yPos = 68;
+            if (currentAnalyticsData.suggestionPoints?.length > 0) {
+                currentAnalyticsData.suggestionPoints.forEach(p => {
+                    const lines = doc.splitTextToSize(`• ${p}`, 180); doc.text(lines, 14, yPos); yPos += (lines.length * 5) + 2;
                 });
             }
 
-            yPos += 5;
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "bold");
-            doc.text("2. Rincian Ibadah", 14, yPos);
-            yPos += 6;
+            yPos += 5; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("2. Rincian Ibadah", 14, yPos); yPos += 6;
 
-            const tableColumn = ["Tanggal", "Acara", "Kehadiran", "Penerimaan", "Pengkhotbah", "WL & Musik"];
-            const tableRows = [];
-            filteredEvents.forEach(item => {
-                tableRows.push([
-                    item.date,
-                    item.eventName,
-                    `${item.attendance || 0} (${item.newVisitors || 0} baru)`,
-                    formatCurrency(item.income),
-                    item.preacher || "-",
-                    `WL: ${item.wl || '-'}\nMusik: ${item.musicians || '-'}`
-                ]);
-            });
+            const tCols = ["Tanggal", "Kategori", "Acara", "Hadir", "Keuangan (Net)", "Pelayan Utama"];
+            const tRows = fEvents.map(i => [
+                i.date, i.ibadahType === 'reguler' ? 'Reguler' : 'Spesial', i.eventName, 
+                `${i.attendance||0}`, formatCurrency((parseInt(i.income)||0)-(parseInt(i.expense)||0)),
+                `K: ${i.preacher||'-'}\nWL: ${i.wl||'-'}`
+            ]);
 
-            doc.autoTable({
-                startY: yPos,
-                head: [tableColumn],
-                body: tableRows,
-                theme: 'striped',
-                headStyles: { fillColor: [30, 58, 138] },
-                styles: { fontSize: 8 }
-            });
-
-            doc.save(`${churchName.replace(/\s+/g, '_')}_Laporan_Resmi.pdf`);
+            doc.autoTable({ startY: yPos, head: [tCols], body: tRows, theme: 'striped', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 8 } });
+            doc.save(`${churchName.replace(/\s+/g, '_')}_Laporan.pdf`);
         }
 
-        // Initialize on load
-        window.onload = () => {
-            updateUI();
-        };
+        function updateUI() {
+            document.getElementById('nav-church-name').innerText = churchName;
+            eventsData.sort((a, b) => new Date(`${b.date}T${b.time||'00:00'}`) - new Date(`${a.date}T${a.time||'00:00'}`));
+            activitiesData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            populateMonthFilter();
+            renderDashboard();
+            renderTable();
+            renderActivityTable();
+            
+            localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(eventsData));
+            localStorage.setItem(STORAGE_KEY_ACTIVITIES, JSON.stringify(activitiesData));
+        }
+
+        window.onload = updateUI;
     </script>
 </body>
 </html>
